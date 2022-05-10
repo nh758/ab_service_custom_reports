@@ -1,6 +1,6 @@
 FROM node:15.14
 
-RUN git clone --recursive https://github.com/Hiro-Nakamura/ab_service_custom_reports.git app && cd app && npm install
+RUN git clone --recursive https://github.com/digi-serve/ab_service_custom_reports.git app && cd app && npm install
 
 WORKDIR /app
 
