@@ -102,7 +102,7 @@
       <% bal = transaction.Type == "Charge" ? bal + transaction.Amount : bal - transaction.Amount %>
     <tr>
       <td><%= transaction.Date.toLocaleDateString('en-US') %></td>
-      <td><%= transaction.Description %></td>
+      <td><%= transaction.Description %> - <%= transaction.clients.join(", ") %></td>
       <td><%= transaction.Type == "Charge" ? transaction.Amount : 0 %></td>
       <td><%= transaction.Type == "Payment" ? transaction.Amount : 0 %></td>
       <td><%= bal %></td>
