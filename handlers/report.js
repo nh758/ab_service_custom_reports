@@ -15,7 +15,14 @@ const reports = {
    //                template() => string - ejs template string
    "well-invoice": require("../reports/well-invoice.js"),
    "well-receipt": require("../reports/well-receipt.js"),
+   "localIncomeExpense": require("../reports/localIncomeExpense.js"),
+   "incomeVsExpense": require("../reports/incomeVsExpense.js"),
+   "abReportBalance": require("../reports/abReportBalance.js"),
 };
+// "balanceReport",
+// "balanceSheet",
+// "incomeVsExpense",
+// "localIncomeExpense",
 
 module.exports = {
    /**
