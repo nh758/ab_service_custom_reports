@@ -3,11 +3,28 @@ const fs = require("fs");
 module.exports = {
    prepareData: async (AB, { input }) => {
       const data = {
-         payee: input,
+         promiseOutput: "no data",
       };
       console.log("file from hello world");
+      // A simple promise that resolves after a given time
+      const timeOut = (t) => {
+         return new Promise((resolve, reject) => {
+            setTimeout(() => {
+               resolve(`Completed in ${t}`);
+            }, t);
+         });
+      };
+
+      // Resolving a normal promise.
+      timeOut(1000).then((result) => console.log(result)); // Completed in 1000
+
+      // Promise.all
+      await Promise.all([timeOut(1000), timeOut(2000)]).then(
+         (result) => (data.promiseOutput = result)
+         // console.log(result)
+      ); // ["Completed in 1000", "Completed in 2000"]
       // console.log(AB);
-      return { output: "earth" };
+      return { output: `earth ${data.promiseOutput}` };
    },
    template: () => {
       return fs.readFileSync(

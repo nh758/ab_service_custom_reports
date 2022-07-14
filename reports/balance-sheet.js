@@ -303,37 +303,48 @@ module.exports = {
       await GetFYMonths(AB.objectByID(OBJECT_IDS.FY_MONTH)?.model())
          .then((list) => {
             data.fyOptions = list;
+            console.log(
+               "🚀 ~ file: balance-sheet.js ~ line 306 ~ .then ~ list",
+               list
+            );
             // next();
          })
          .catch((error) => console.log(`Error in promises ${error}`));
       await GetBalances(AB, data.rc, data.fyPeriod || data.fyOptions[0])
          .then((list) => {
-            (list || []).forEach((bl) => {
-               if (
-                  bl == null ||
-                  bl.COANum__relation == null ||
-                  bl.COANum__relation.Category == null
-               ) {
-                  return;
-               }
+            console
+               .log("🚀 ~ file: balance-sheet.js ~ line 312 ~ .then ~ list")(
+                  list || []
+               )
+               .forEach((bl) => {
+                  if (
+                     bl == null ||
+                     bl.COANum__relation == null ||
+                     bl.COANum__relation.Category == null
+                  ) {
+                     return;
+                  }
 
-               const category = bl.COANum__relation.Category.toString();
-               if (
-                  category == ACCOUNT_CATEGORIES.Assets ||
-                  category == ACCOUNT_CATEGORIES.Liabilities ||
-                  category == ACCOUNT_CATEGORIES.Equity
-               ) {
-                  let accNum = bl.COANum__relation["Acct Num"].toString();
+                  const category = bl.COANum__relation.Category.toString();
+                  if (
+                     category == ACCOUNT_CATEGORIES.Assets ||
+                     category == ACCOUNT_CATEGORIES.Liabilities ||
+                     category == ACCOUNT_CATEGORIES.Equity
+                  ) {
+                     let accNum = bl.COANum__relation["Acct Num"].toString();
 
-                  data.items.forEach((reportItem) => {
-                     if (reportItem.id == null || isNaN(reportItem.id)) return;
+                     data.items.forEach((reportItem) => {
+                        if (reportItem.id == null || isNaN(reportItem.id))
+                           return;
 
-                     if (accNum.indexOf(reportItem.id) == 0) {
-                        reportItem.value += parseFloat(bl["Running Balance"]);
-                     }
-                  });
-               }
-            });
+                        if (accNum.indexOf(reportItem.id) == 0) {
+                           reportItem.value += parseFloat(
+                              bl["Running Balance"]
+                           );
+                        }
+                     });
+                  }
+               });
          })
          .catch((error) => console.log(`Error in promises ${error}`));
 

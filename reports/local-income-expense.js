@@ -43,15 +43,15 @@ module.exports = {
          );
          // languageCode = AB.query.languageCode;
       }
-      if (AB.user && AB.user.data) {
-         console.log(
-            "User --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
-            AB.user.data
-         );
-      } else {
-         // console.log(AB);
-         // console.log(AB.id);
-      }
+
+      console.log(
+         "User --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
+         AB.id
+      );
+      console.log(
+         "req --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
+         AB.req
+      );
 
       // if (languageCode == "zh-hans") {
       let languageCode = "zh";
@@ -215,8 +215,9 @@ module.exports = {
                      glue: "and",
                      rules: [],
                   },
-               }
+               },
                // AB.user.data
+               AB.id
             ),
          fiscalMonthObj // .modelAPI()
             .findAll({
@@ -310,16 +311,16 @@ module.exports = {
                glue: "and",
                rules: [
                   // TODO critical reenable
-                  // {
-                  //    key: "RC Code",
-                  //    rule: "equals",
-                  //    value: rc
-                  // },
-                  // {
-                  //    key: "FY Period",
-                  //    rule: "equals",
-                  //    value: data.fiscalPeriod
-                  // }
+                  {
+                     key: "RC Code",
+                     rule: "equals",
+                     value: rc,
+                  },
+                  {
+                     key: "FY Period",
+                     rule: "equals",
+                     value: data.fiscalPeriod,
+                  },
                ],
             },
             populate: false,
