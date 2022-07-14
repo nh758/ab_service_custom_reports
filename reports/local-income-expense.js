@@ -14,7 +14,15 @@ module.exports = {
       // get our passed params
       //console.log("params -------------->", req);
       rc = rc ? rc : undefined;
+      console.log(
+         "~ file: local-income-expense.js ~ line 17 ~ prepareData: ~ rc",
+         rc
+      );
       fiscalPeriod = fiscalPeriod ? fiscalPeriod : undefined;
+      console.log(
+         "~ file: local-income-expense.js ~ line 18 ~ prepareData: ~ fiscalPeriod",
+         fiscalPeriod
+      );
 
       const ids = {
          myRCsQueryId: "241a977c-7748-420d-9dcb-eff53e66a43f",
@@ -33,17 +41,20 @@ module.exports = {
             "languageCode --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
             AB.query.languageCode
          );
-         languageCode = AB.query.languageCode;
+         // languageCode = AB.query.languageCode;
       }
       if (AB.user && AB.user.data) {
          console.log(
             "User --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
             AB.user.data
          );
+      } else {
+         // console.log(AB);
+         // console.log(AB.id);
       }
 
       // if (languageCode == "zh-hans") {
-      var languageCode = "zh";
+      let languageCode = "zh";
       // }
 
       //console.log("language ------->", languageCode);
@@ -190,25 +201,51 @@ module.exports = {
          }
       }
 
-      // let myRCs = ABSystemObject.getApplication().queries(
-      //    (o) => o.id == "241a977c-7748-420d-9dcb-eff53e66a43f"
-      // )[0];
-      const myRCs = AB.queryByID(ids.myRCsQueryId)?.model();
+      const myRCs = AB.queryByID(ids.myRCsQueryId).model();
+      const balanceObj = AB.objectByID(ids.balanceObjId).model();
+      const fiscalMonthObj = AB.objectByID(ids.fiscalMonthObjId).model();
 
-      console.log("myRCs ----------------->", myRCs);
-
-      return myRCs
-         .queryFind(
-            {
+      const [rcs, fiscalMonthRecords] = await Promise.all([
+         // return myRCs
+         AB.queryByID(ids.myRCsQueryId)
+            .model()
+            .find(
+               {
+                  where: {
+                     glue: "and",
+                     rules: [],
+                  },
+               }
+               // AB.user.data
+            ),
+         fiscalMonthObj // .modelAPI()
+            .findAll({
                where: {
                   glue: "and",
-                  rules: [],
+                  rules: [
+                     // TODO CRITICAL reenable this @achoobert
+                     // {
+                     //    key: "Status",
+                     //    rule: "equals",
+                     //    value: "1592549786113"
+                     // }
+                  ],
                },
-            },
-            AB.user.data
-         )
-         .then((rcs) => {
-            console.log("My Team RCs ---------------->", rcs);
+               populate: false,
+               sort: [
+                  {
+                     key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
+                     dir: "DESC",
+                  },
+               ],
+               limit: 12,
+            }),
+      ]).catch((error) => console.log(`Error in promises ${error}`));
+
+      // console.log("myRCs ----------------->", myRCs);
+      await Promise.all(
+         (rcs) => {
+            // console.log("My Team RCs ---------------->", rcs);
 
             let rcOptions = [];
             rcs.forEach((rc) => {
@@ -223,128 +260,96 @@ module.exports = {
                rc = data.rcOptions[0];
                data.rc = rc;
             }
+         },
+         (fiscalMonthRecords) => {
+            console.log(
+               "Fiscal Month Records ------------------>"
+               // records
+            );
+            let fiscalMonthsArray = fiscalMonthRecords;
+            data.fiscalPeriod = fiscalPeriod || fiscalMonthsArray[0]["FY Per"];
+            let fiscalPeriodOptions = [];
+            let i = 0;
+            let currIndex = 0;
+            fiscalMonthsArray.forEach((fp) => {
+               var dateObj = new Date(fp["End"]);
+               var month = dateObj.getUTCMonth() + 1; //months from 1-12
+               var year = dateObj.getUTCFullYear();
+               var prettyDate = year + "/" + (month > 9 ? month : "0" + month);
+               var option = { id: fp["FY Per"], label: prettyDate };
+               if (fiscalPeriod == fp["FY Per"]) {
+                  option.selected = true;
+                  currIndex = i;
+               }
+               fiscalPeriodOptions.push(option);
+               i++;
+            });
+            data.fiscalPeriodOptions = fiscalPeriodOptions;
+            var dateObj = new Date(fiscalMonthsArray[currIndex]["End"]);
+            var month = dateObj.getUTCMonth() + 1; //months from 1-12
+            var year = dateObj.getUTCFullYear();
+            data.fiscalPeriodend =
+               year + "/" + (month > 9 ? month : "0" + month);
+            let startYear = year;
+            if (month < 7) {
+               startYear = year - 1;
+            }
+            data.fiscalPeriodstart = startYear + "/07";
 
-            const fiscalMonthObj = AB.objectByID(ids.fiscalMonthObjId).model();
-            // let fiscalMonthObj = ABSystemObject.getApplication().objects(
-            //    (o) => o.id == "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f"
-            // )[0];
+            console.log(
+               "Fiscal Month picked from query param -------->"
+               // data.fiscalPeriod
+            );
+         }
+      ).catch((error) => console.log(`Error in promises ${error}`));
 
-            return fiscalMonthObj
-               .modelAPI()
-               .findAll({
-                  where: {
-                     glue: "and",
-                     rules: [
-                        {
-                           key: "Status",
-                           rule: "equals",
-                           value: "1592549786113",
-                        },
-                     ],
-                  },
-                  populate: false,
-                  sort: [
-                     {
-                        key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-                        dir: "DESC",
-                     },
-                  ],
-                  limit: 12,
-               })
-               .then((records) => {
-                  console.log(
-                     "Fiscal Month Records ------------------>",
-                     records
-                  );
-                  let fiscalMonthsArray = records;
-                  data.fiscalPeriod =
-                     fiscalPeriod || fiscalMonthsArray[0]["FY Per"];
-                  let fiscalPeriodOptions = [];
-                  let i = 0;
-                  let currIndex = 0;
-                  fiscalMonthsArray.forEach((fp) => {
-                     var dateObj = new Date(fp["End"]);
-                     var month = dateObj.getUTCMonth() + 1; //months from 1-12
-                     var year = dateObj.getUTCFullYear();
-                     var prettyDate =
-                        year + "/" + (month > 9 ? month : "0" + month);
-                     var option = { id: fp["FY Per"], label: prettyDate };
-                     if (fiscalPeriod == fp["FY Per"]) {
-                        option.selected = true;
-                        currIndex = i;
-                     }
-                     fiscalPeriodOptions.push(option);
-                     i++;
-                  });
-                  data.fiscalPeriodOptions = fiscalPeriodOptions;
-                  var dateObj = new Date(fiscalMonthsArray[currIndex]["End"]);
-                  var month = dateObj.getUTCMonth() + 1; //months from 1-12
-                  var year = dateObj.getUTCFullYear();
-                  data.fiscalPeriodend =
-                     year + "/" + (month > 9 ? month : "0" + month);
-                  let startYear = year;
-                  if (month < 7) {
-                     startYear = year - 1;
-                  }
-                  data.fiscalPeriodstart = startYear + "/07";
+      await balanceObj
+         // .modelAPI()
+         .findAll({
+            where: {
+               glue: "and",
+               rules: [
+                  // TODO critical reenable
+                  // {
+                  //    key: "RC Code",
+                  //    rule: "equals",
+                  //    value: rc
+                  // },
+                  // {
+                  //    key: "FY Period",
+                  //    rule: "equals",
+                  //    value: data.fiscalPeriod
+                  // }
+               ],
+            },
+            populate: false,
+         })
+         .then((records) => {
+            // console.log(records);
 
-                  console.log(
-                     "Fiscal Month picked from query param -->",
-                     data.fiscalPeriod
-                  );
-                  const balanceObj = AB.objectByID(ids.balanceObjId).model();
-                  // let balanceObj = ABSystemObject.getApplication().objects(
-                  //    (o) => o.id == "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804"
-                  // )[0];
-
-                  balanceObj
-                     .modelAPI()
-                     .findAll({
-                        where: {
-                           glue: "and",
-                           rules: [
-                              {
-                                 key: "RC Code",
-                                 rule: "equals",
-                                 value: rc,
-                              },
-                              {
-                                 key: "FY Period",
-                                 rule: "equals",
-                                 value: data.fiscalPeriod,
-                              },
-                           ],
-                        },
-                        populate: false,
-                     })
-                     .then((records) => {
-                        console.log(records);
-
-                        data.categories.forEach((cat) => {
-                           let catSum = 0;
-                           cat.sub.forEach((sub) => {
-                              sub.sum = categorySum(sub.id, records);
-                              catSum = (100 * sub.sum + 100 * catSum) / 100;
-                           });
-                           cat.sum = catSum;
-                        });
-
-                        data.localPercentage = Math.floor(
-                           (data.categories[0].sum / data.categories[1].sum) *
-                              100
-                        );
-
-                        console.log(
-                           "data is outputting: -> -> -> -> -> -> -> -> ->"
-                        );
-                        return data;
-                        // res.view(
-                        //    "app_builder/template/localIncomeExpense", // .ejs
-                        //    data
-                        // );
-                     });
+            data.categories.forEach((cat) => {
+               let catSum = 0;
+               cat.sub.forEach((sub) => {
+                  sub.sum = categorySum(sub.id, records);
+                  catSum = (100 * sub.sum + 100 * catSum) / 100;
                });
-         });
+               cat.sum = catSum;
+            });
+
+            data.localPercentage = Math.floor(
+               (data.categories[0].sum / data.categories[1].sum) * 100
+            );
+
+            console.log("data is outputting: -> -> -> -> -> -> -> -> ->");
+         })
+         .catch((error) => console.log(`Error in last promise ${error}`));
+
+      console.log(
+         " ~ file: local-income-expense.js ~ line 369 ~ prepareData: ~ data",
+         data
+      );
+
+      return data;
    },
    template: () => {
       return fs.readFileSync(

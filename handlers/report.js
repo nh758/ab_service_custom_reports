@@ -13,11 +13,12 @@ const reports = {
    // reportKey: require(/pathToReport)  -> Should export:
    //                prepareData(AB, req.param("data")) => obj - data for the ejs tempalte
    //                template() => string - ejs template string
+   "hello-world": require("../reports/hello-world.js"),
    "well-invoice": require("../reports/well-invoice.js"),
    "well-receipt": require("../reports/well-receipt.js"),
    "local-income-expense": require("../reports/local-income-expense.js"),
    "income-vs-expense": require("../reports/income-vs-expense.js"),
-   "abReportBalance": require("../reports/abReportBalance.js"),
+   "balance-sheet": require("../reports/balance-sheet.js"),
 };
 // "balanceReport",
 // "balanceSheet",

@@ -175,7 +175,7 @@ module.exports = {
                limit: 12,
             })
             .then((records) => {
-               console.log("Fiscal Month Records ------------------>", records);
+               // console.log("Fiscal Month Records ------------------>", records);
                let fiscalMonthsArray = records;
                data.fyper = fyper || fiscalMonthsArray[0]["FY Per"];
                let fyperOptions = [];
@@ -219,16 +219,17 @@ module.exports = {
                         where: {
                            glue: "and",
                            rules: [
+                              // TODO replace these rules @achoobert
                               // {
                               //    key: "RC Code",
                               //    rule: "equals",
                               //    value: rc
                               // },
-                              {
-                                 key: "FY Period",
-                                 rule: "equals",
-                                 value: data.fyper,
-                              },
+                              // {
+                              //    key: "FY Period",
+                              //    rule: "equals",
+                              //    value: data.fyper,
+                              // },
                            ],
                         },
                         populate: false,
@@ -528,9 +529,9 @@ module.exports = {
                            zh: "Balance Sheet 中的净收入(损失) ",
                         };
 
-                        console.log(
-                           "data is outputting: -> -> -> -> -> -> -> -> ->"
-                        );
+                        // console.log(
+                        //    "data is outputting: -> -> -> -> -> -> -> -> ->"
+                        // );
                         return data;
                      })
                );

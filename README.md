@@ -32,5 +32,6 @@ It seems that this service will just not start up if there are any problems with
 report/well-invoice?payeeId=2
 http://127.0.0.1:8088/report/income-vs-expense?fyper=FY22%20M12
 http://127.0.0.1:8088/report/local-income-expense?rc=RC%20Center%20flush&fiscalPeriod=FY22%20M12
+http://127.0.0.1:8088/report/balance-sheet?rc=RC%20Center%20flush&month=FY22%20M12
 
 In order to test: Make sure that the objects exist on your local, otherwise `AB.objectByID().object()` will throw an exception
