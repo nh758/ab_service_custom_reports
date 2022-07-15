@@ -19,6 +19,7 @@ const reports = {
    "local-income-expense": require("../reports/local-income-expense.js"),
    "income-vs-expense": require("../reports/income-vs-expense.js"),
    "balance-sheet": require("../reports/balance-sheet.js"),
+   "balance-report": require("../reports/balance-report.js"),
 };
 // "balanceReport",
 // "balanceSheet",

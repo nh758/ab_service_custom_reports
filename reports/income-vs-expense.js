@@ -529,6 +529,7 @@ module.exports = {
                });
          });
 
+      console.log(" ~ file: income-vs-expense.js ~ line 534 ~ prepareData: ~ data", data)
       return data;
    },
    template: () => {
