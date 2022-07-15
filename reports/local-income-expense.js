@@ -45,13 +45,17 @@ module.exports = {
       }
 
       console.log(
-         "User --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
+         "id --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
          AB.id
       );
       console.log(
-         "req --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
+         "User --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
          AB.req
       );
+      // console.log(
+      //    "UserForm --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
+      //    AB.req.controller.models.UserForm
+      // );
 
       // if (languageCode == "zh-hans") {
       let languageCode = "zh";
@@ -175,7 +179,7 @@ module.exports = {
             },
          ],
       };
-
+      debugger;
       function accountInCategory(account, category) {
          const accountDigits = account.toString().split("");
          const categoryDigits = category.toString().split("");
@@ -216,8 +220,9 @@ module.exports = {
                      rules: [],
                   },
                },
+               AB
                // AB.user.data
-               AB.id
+               // AB.id
             ),
          fiscalMonthObj // .modelAPI()
             .findAll({
@@ -304,7 +309,7 @@ module.exports = {
          }
       ).catch((error) => console.log(`Error in promises ${error}`));
 
-      await balanceObj
+      return await balanceObj
          // .modelAPI()
          .findAll({
             where: {
@@ -343,14 +348,15 @@ module.exports = {
 
             console.log("data is outputting: -> -> -> -> -> -> -> -> ->");
          })
+         .then(() => {
+            console.log(
+               " ~ file: local-income-expense.js ~ line 369 ~ prepareData: ~ data",
+               data
+            );
+
+            return data;
+         })
          .catch((error) => console.log(`Error in last promise ${error}`));
-
-      console.log(
-         " ~ file: local-income-expense.js ~ line 369 ~ prepareData: ~ data",
-         data
-      );
-
-      return data;
    },
    template: () => {
       return fs.readFileSync(

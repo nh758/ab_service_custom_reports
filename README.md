@@ -35,3 +35,14 @@ http://127.0.0.1:8088/report/local-income-expense?rc=RC%20Center%20flush&fiscalP
 http://127.0.0.1:8088/report/balance-sheet?rc=RC%20Center%20flush&month=FY22%20M12
 
 In order to test: Make sure that the objects exist on your local, otherwise `AB.objectByID().object()` will throw an exception
+
+To debug:
+Add this code to the override or docker-compose
+
+```
+  custom_reports:
+    ports:
+      - "9229:9229"
+```
+
+If it isn't found, try port forwarding in chrome://inspect

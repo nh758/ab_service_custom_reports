@@ -206,89 +206,92 @@ module.exports = {
        */
       let rcHash = {};
 
-      Promise.resolve()
-         // Pull FY month list
-         .then(
-            () =>
-               new Promise((next, err) => {
-                  GetFYMonths(AB)
-                     .then((list) => {
-                        viewData.fyOptions = list;
-                        next();
-                     })
-                     .catch(err);
-               })
-         )
-         // Check QX Role of the user
-         .then(
-            () =>
-               new Promise((next, err) => {
-                  GetRC(
-                     AB,
-                     viewData.rcType == "qx"
-                        ? QUERY_IDS.MyQXRC
-                        : QUERY_IDS.MyTeamRC
-                  )
-                     .then((list) => {
-                        next(list || []);
-                     })
-                     .catch(err);
-               })
-         )
-         // Pull Balance
-         .then(
-            (RCs) =>
-               new Promise((next, err) => {
-                  let rules = [
-                     {
-                        key: "RC Code",
-                        rule: "in",
-                        value: RCs,
-                     },
-                     {
-                        key: "COA Num",
-                        rule: "in",
-                        value: [3991, 3500],
-                     },
-                  ];
+      return (
+         Promise.resolve()
+            // Pull FY month list
+            .then(
+               () =>
+                  new Promise((next, err) => {
+                     GetFYMonths(AB)
+                        .then((list) => {
+                           viewData.fyOptions = list;
+                           next();
+                        })
+                        .catch(err);
+                  })
+            )
+            // Check QX Role of the user
+            .then(
+               () =>
+                  new Promise((next, err) => {
+                     GetRC(
+                        AB,
+                        viewData.rcType == "qx"
+                           ? QUERY_IDS.MyQXRC
+                           : QUERY_IDS.MyTeamRC
+                     )
+                        .then((list) => {
+                           next(list || []);
+                        })
+                        .catch(err);
+                  })
+            )
+            // Pull Balance
+            .then(
+               (RCs) =>
+                  new Promise((next, err) => {
+                     let rules = [
+                        {
+                           key: "RC Code",
+                           rule: "in",
+                           value: RCs,
+                        },
+                        {
+                           key: "COA Num",
+                           rule: "in",
+                           value: [3991, 3500],
+                        },
+                     ];
 
-                  GetBalances(
-                     AB,
-                     null,
-                     viewData.fyPeriod || viewData.fyOptions[0],
-                     rules
-                  )
-                     .then((list) => {
-                        next(list);
-                     })
-                     .catch(err);
-               })
-         )
-         // Render UI
-         .then((balances) => {
-            // Calculate Sum
-            (balances || []).forEach((gl) => {
-               rcHash[gl["RC Code"]] =
-                  rcHash[gl["RC Code"]] == null ? 0 : rcHash[gl["RC Code"]];
+                     GetBalances(
+                        AB,
+                        null,
+                        viewData.fyPeriod || viewData.fyOptions[0],
+                        rules
+                     )
+                        .then((list) => {
+                           next(list);
+                        })
+                        .catch(err);
+                  })
+            )
+            // Render UI
+            .then((balances) => {
+               // Calculate Sum
+               (balances || []).forEach((gl) => {
+                  rcHash[gl["RC Code"]] =
+                     rcHash[gl["RC Code"]] == null ? 0 : rcHash[gl["RC Code"]];
 
-               rcHash[gl["RC Code"]] += gl["Running Balance"] || 0;
-            });
-
-            // Convert to View Data
-            Object.keys(rcHash).forEach((rcCode) => {
-               viewData.items.push({
-                  title: rcCode,
-                  value: rcHash[rcCode],
+                  rcHash[gl["RC Code"]] += gl["Running Balance"] || 0;
                });
-            });
 
-            // Sort
-            viewData.items = viewData.items.sort((a, b) =>
-               a.title.toLowerCase().localeCompare(b.title.toLowerCase())
-            );
-         });
+               // Convert to View Data
+               Object.keys(rcHash).forEach((rcCode) => {
+                  viewData.items.push({
+                     title: rcCode,
+                     value: rcHash[rcCode],
+                  });
+               });
 
-      return viewData;
+               // Sort
+               viewData.items = viewData.items.sort((a, b) =>
+                  a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+               );
+            })
+            .then(() => {
+               return viewData;
+            })
+      );
    },
    template: () => {
       return fs.readFileSync(

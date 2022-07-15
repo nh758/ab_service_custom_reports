@@ -46,9 +46,8 @@
                 FY Period:
             </span>
             <select class="selector" id="fySelect" onchange="refresh()">
-                <% for(var i=0; i < fyOptions.length; i++) { %>
-                    <option <% if (fyPeriod==fyOptions[i]) { %> selected <% } %> value="<%= fyOptions[i] %>"><%=
-                                    fyOptions[i] %>
+                <% fyOptions.forEach(fyOption=> { %>
+                    <option <% if (fyPeriod==fyOption) { %> selected <% } %> value="<%= fyOption %>"><%= fyOption %>
                     </option>
                     <% } %>
             </select>
