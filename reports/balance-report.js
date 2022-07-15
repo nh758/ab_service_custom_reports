@@ -54,7 +54,7 @@ function GetViewDataBalanceReport(languageCode, rc, fyMonth) {
    };
 }
 
-function GetRC(AB, queryId, cond = {}) {
+function GetRC(AB, queryId) {
    var userData = AB.id;
    // const queryRC = ABSystemObject.getApplication().queries(
    //    (o) => o.id == queryId
@@ -71,12 +71,8 @@ function GetRC(AB, queryId, cond = {}) {
 
    return new Promise((next, bad) => {
       queryRC
-         .findAll(
-            {
-               where: cond,
-            },
-            userData
-         )
+         // .findAll({}, userData, AB.req)
+         .findAll({}, userData)
          .then((list) => {
             let rcNames = (list || []).map((rc) => rc["BASE_OBJECT.RC Name"]);
 
@@ -295,7 +291,7 @@ module.exports = {
    },
    template: () => {
       return fs.readFileSync(
-         path.join(__dirname, "templates", "balance-report.ejs"),
+         path.join(__dirname, "templates", "hello-world.ejs"),
          "utf8"
       );
    },

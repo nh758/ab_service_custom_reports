@@ -244,10 +244,6 @@ function GetBalances(AB, rc, fyPeriod, extraRules = []) {
 
    const objBalance = AB.objectByID(OBJECT_IDS.BALANCE).model();
 
-   // const objBalance = ABSystemObject.getApplication().objects(
-   //    (o) => o.id ==
-   // )[0];
-   array.forEach((element) => {});
    if (objBalance == null || fyPeriod == null) {
       return Promise.resolve([]);
    }
@@ -308,55 +304,42 @@ module.exports = {
 
       var data = GetViewDataBalanceSheet(languageCode, rc || null, month); //;
 
-      await GetFYMonths(AB) //(AB.objectByID(OBJECT_IDS.FY_MONTH)?.model())
-         .then((list) => {
-            data.fyOptions = list;
-            console.log(
-               " ~ file: balance-sheet.js ~ line 306 ~ .then ~ list",
-               typeof list,
-               list
-            );
-            // next();
-         })
-         .catch((error) => console.log(`Error in promises ${error}`));
+      data.fyOptions = await GetFYMonths(AB); //(AB.objectByID(OBJECT_IDS.FY_MONTH)?.model())
 
-      return await GetBalances(AB, data.rc, data.fyPeriod || data.fyOptions[0])
-         .then((list) => {
-            (list || []).forEach((bl) => {
-               if (
-                  bl == null ||
-                  bl.COANum__relation == null ||
-                  bl.COANum__relation.Category == null
-               ) {
-                  return;
-               }
+      let list = await GetBalances(
+         AB,
+         data.rc,
+         data.fyPeriod || data.fyOptions[0]
+      );
 
-               const category = bl.COANum__relation.Category.toString();
-               if (
-                  category == ACCOUNT_CATEGORIES.Assets ||
-                  category == ACCOUNT_CATEGORIES.Liabilities ||
-                  category == ACCOUNT_CATEGORIES.Equity
-               ) {
-                  let accNum = bl.COANum__relation["Acct Num"].toString();
+      list.forEach((bl) => {
+         if (
+            bl == null ||
+            bl.COANum__relation == null ||
+            bl.COANum__relation.Category == null
+         ) {
+            return;
+         }
 
-                  data.items.forEach((reportItem) => {
-                     if (reportItem.id == null || isNaN(reportItem.id)) return;
+         const category = bl.COANum__relation.Category.toString();
+         if (
+            category == ACCOUNT_CATEGORIES.Assets ||
+            category == ACCOUNT_CATEGORIES.Liabilities ||
+            category == ACCOUNT_CATEGORIES.Equity
+         ) {
+            let accNum = bl.COANum__relation["Acct Num"].toString();
 
-                     if (accNum.indexOf(reportItem.id) == 0) {
-                        reportItem.value += parseFloat(bl["Running Balance"]);
-                     }
-                  });
+            data.items.forEach((reportItem) => {
+               if (reportItem.id == null || isNaN(reportItem.id)) return;
+
+               if (accNum.indexOf(reportItem.id) == 0) {
+                  reportItem.value += parseFloat(bl["Running Balance"]);
                }
             });
-         })
-         .then(() => {
-            console.log(
-               "🚀 ~ file: balance-sheet.js ~ line 356 ~ .then ~ data",
-               data
-            );
-            return data;
-         })
-         .catch((error) => console.log(`Error in promises ${error}`));
+         }
+      });
+      return data;
+      // .catch((error) => console.log(`Error in promises ${error}`));
    },
    template: () => {
       return fs.readFileSync(

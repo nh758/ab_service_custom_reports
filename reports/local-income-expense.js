@@ -360,7 +360,7 @@ module.exports = {
    },
    template: () => {
       return fs.readFileSync(
-         path.join(__dirname, "templates", "local-income-expense.ejs"),
+         path.join(__dirname, "templates", "hello-world.ejs"),
          "utf8"
       );
    },
