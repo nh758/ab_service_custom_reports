@@ -1,0 +1,118 @@
+<style>
+   body {
+       -webkit-appearance: none;
+       -webkit-font-smoothing: antialiased;
+       background-color: #fff;
+       border: 0 solid #dadee0;
+       color: #475466;
+       cursor: default;
+       font-family: Roboto,sans-serif;
+       font-size: 14px;
+       font-weight: 400;
+       letter-spacing: .2px;
+       overflow: hidden;
+       white-space: normal;
+   }
+   table {
+      width: 100%;
+      border-collapse: collapse;
+   }
+   th {
+      border-bottom: 2px solid gray;
+      font-size: 18px;
+   }
+   td, th {
+      padding: 20px 10px;
+   }
+   td.left {
+      font-weight: 700;
+   }
+   td.right {
+      text-align: right;
+   }
+   h1 {
+      font-size: 32px;
+      margin: 10px;
+   }
+   h2 {
+      font-size: 24px;
+      margin: 10px;
+   }
+   .footer {
+     position: absolute;
+     bottom: 0;
+     display:flex;
+     width: 138mm;
+     justify-content:space-between;
+   }
+   .footer > div {
+     padding: 10px;
+     color: #606060;
+     text-align: right;
+     text-decoration-color: "dgray";
+     font-size: 12px;
+     font-weight: 100;
+
+   }
+   .footer > div:first-child {
+     text-align: left;
+   }
+   .wrapper {
+      display:flex;
+      height: 205mm;
+      width: 297mm;
+      justify-content:space-between;
+   }
+   .wrapper > div {
+      white-space:nowrap;
+      height: 205mm;
+      width: 138mm;
+      position: relative;
+   }
+   .logo {
+      width: 50%;
+   }
+   @media screen {
+    div.wrapper {
+     margin: 5mm 5mm 5mm 10mm;
+     }
+   }
+
+   @media print {
+      div.wrapper {
+      margin: 0mm;
+      }
+   }
+</style>
+<div class="wrapper">
+   <% ["Client", "Office"].forEach((copy)=>{ %>
+      <div>
+         <img class="logo" src="<%= logo %>"/>
+         <h2>Official Receipt (<%= copy %> copy)</h2>
+         <table>
+            <tr><td/><td class="right">No. <%= number %></td></tr>
+            <tr><td class="left">Date:</td><td class="right"><%= date.toLocaleDateString('en-US') %></td></tr>
+            <tr><td class="left">Received from:</td><td class="right"><%= name %></td></tr>
+            <tr><td class="left">For:</td><td class="right"><%= description %></td></tr>
+            <tr><td class="left">Method:</td><td class="right"><%= method %></td></tr>
+            <tr><td class="left">Total Amount:</td><td class="right"><%= amount %></td></tr>
+         </table>
+         <div class="footer">
+            <div>
+               <p>
+               <%= entity["Address L1"] %><br>
+               <%= entity["Address L2"] %><br>
+               <%= entity["Address L3"] %>
+               </p>
+            </div>
+            <div>
+               <p>
+               <%= entity["Phone Thai"] %> (Thailand)<br>
+               <%= entity["Phone International"] %> (International)<br>
+               <%= entity["Finance Email"] %>
+               </p>
+            </div>
+        </div>
+     </div>
+   <% }); %>
+</div>

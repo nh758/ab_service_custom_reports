@@ -1,18 +1,28 @@
 ##
-## digiserve/custom_reports:master
+## digiserve/custom_reports
 ##
 ## This is our microservice for handling all our incoming AB
 ## api requests.
 ##
 ## Docker Commands:
 ## ---------------
-## $ docker build -t digiserve/custom_reports:master .
-## $ docker push digiserve/custom_reports:master
+## $ docker build -t digiserve/custom_reports:develop .
+## $ docker push digiserve/custom_reports:develop
 ##
 
-FROM digiserve/service-cli:master
+ARG BRANCH=master
 
-RUN git clone --recursive https://github.com/digi-serve/ab_service_custom_reports.git app && cd app && npm install
+FROM digiserve/service-cli:${BRANCH}
+
+COPY . /app
+
+WORKDIR /app
+
+RUN npm i -f
+
+WORKDIR /app/AppBuilder
+
+RUN npm i -f
 
 WORKDIR /app
 
