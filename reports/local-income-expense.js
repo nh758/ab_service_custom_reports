@@ -10,7 +10,7 @@ module.exports = {
    // GET: /template/localIncomeExpense
    // get the local and expense income and calculate the sums
    // ! getData: function(req, res) {
-   prepareData: async (AB, { rc, fiscalPeriod }) => {
+   prepareData: async (AB, { rc, fyper }) => {
       // get our passed params
       //console.log("params -------------->", req);
       rc = rc ? rc : undefined;
@@ -18,10 +18,10 @@ module.exports = {
          "~ file: local-income-expense.js ~ line 17 ~ prepareData: ~ rc",
          rc
       );
-      fiscalPeriod = fiscalPeriod ? fiscalPeriod : undefined;
+      fyper = fyper ? fyper : undefined;
       console.log(
-         "~ file: local-income-expense.js ~ line 18 ~ prepareData: ~ fiscalPeriod",
-         fiscalPeriod
+         "~ file: local-income-expense.js ~ line 18 ~ prepareData: ~ fyper",
+         fyper
       );
 
       const ids = {
@@ -44,14 +44,14 @@ module.exports = {
          // languageCode = AB.query.languageCode;
       }
 
-      console.log(
-         "id --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
-         AB.id
-      );
-      console.log(
-         "User --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
-         AB.req
-      );
+      // console.log(
+      //    "id --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
+      //    AB.id
+      // );
+      // console.log(
+      //    "User --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
+      //    AB.req
+      // );
       // console.log(
       //    "UserForm --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
       //    AB.req.controller.models.UserForm
@@ -179,7 +179,7 @@ module.exports = {
             },
          ],
       };
-      debugger;
+      // debugger;
       function accountInCategory(account, category) {
          const accountDigits = account.toString().split("");
          const categoryDigits = category.toString().split("");
@@ -209,49 +209,53 @@ module.exports = {
       const balanceObj = AB.objectByID(ids.balanceObjId).model();
       const fiscalMonthObj = AB.objectByID(ids.fiscalMonthObjId).model();
 
-      const [rcs, fiscalMonthRecords] = await Promise.all([
+      const [rcs, fiscalMonthsArray] = await Promise.all([
          // return myRCs
-         AB.queryByID(ids.myRCsQueryId)
-            .model()
-            .find(
+         myRCs.findAll(
+            {
+               // where: {
+               //    glue: "and",
+               //    rules: [],
+               // },
+            },
+            { user: AB.id },
+            AB.req
+         ),
+         fiscalMonthObj // .modelAPI()
+            .findAll(
                {
                   where: {
                      glue: "and",
-                     rules: [],
+                     rules: [
+                        // TODO CRITICAL reenable this @achoobert
+                        {
+                           key: "Status",
+                           rule: "equals",
+                           value: "1592549786113",
+                        },
+                     ],
                   },
-               },
-               AB
-               // AB.user.data
-               // AB.id
-            ),
-         fiscalMonthObj // .modelAPI()
-            .findAll({
-               where: {
-                  glue: "and",
-                  rules: [
-                     // TODO CRITICAL reenable this @achoobert
-                     // {
-                     //    key: "Status",
-                     //    rule: "equals",
-                     //    value: "1592549786113"
-                     // }
+                  populate: false,
+                  sort: [
+                     {
+                        key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
+                        dir: "DESC",
+                     },
                   ],
+                  limit: 12,
                },
-               populate: false,
-               sort: [
-                  {
-                     key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-                     dir: "DESC",
-                  },
-               ],
-               limit: 12,
-            }),
-      ]).catch((error) => console.log(`Error in promises ${error}`));
+               { user: AB.id },
+               AB.req
+            ),
+      ]);
 
       // console.log("myRCs ----------------->", myRCs);
-      await Promise.all(
-         (rcs) => {
+      [data.rc, data.fiscalPeriodstart] = await Promise.all([
+         new Promise((resolve, reject) => {
             // console.log("My Team RCs ---------------->", rcs);
+            if (!rcs || !rcs.length) {
+               reject(new Error("My Team RCs not found"));
+            }
 
             let rcOptions = [];
             rcs.forEach((rc) => {
@@ -264,16 +268,16 @@ module.exports = {
 
             if (!rc) {
                rc = data.rcOptions[0];
-               data.rc = rc;
             }
-         },
-         (fiscalMonthRecords) => {
-            console.log(
-               "Fiscal Month Records ------------------>"
-               // records
-            );
-            let fiscalMonthsArray = fiscalMonthRecords;
-            data.fiscalPeriod = fiscalPeriod || fiscalMonthsArray[0]["FY Per"];
+            resolve(rc);
+         }),
+         new Promise((resolve, reject) => {
+            // let fiscalMonthsArray = fyper;
+            if (!fiscalMonthsArray || !fiscalMonthsArray.length) {
+               reject(new Error("Fiscal Months not found"));
+            }
+
+            data.fyper = fyper || fiscalMonthsArray[0]["FY Per"];
             let fiscalPeriodOptions = [];
             let i = 0;
             let currIndex = 0;
@@ -283,7 +287,7 @@ module.exports = {
                var year = dateObj.getUTCFullYear();
                var prettyDate = year + "/" + (month > 9 ? month : "0" + month);
                var option = { id: fp["FY Per"], label: prettyDate };
-               if (fiscalPeriod == fp["FY Per"]) {
+               if (fyper == fp["FY Per"]) {
                   option.selected = true;
                   currIndex = i;
                }
@@ -300,18 +304,16 @@ module.exports = {
             if (month < 7) {
                startYear = year - 1;
             }
-            data.fiscalPeriodstart = startYear + "/07";
-
             console.log(
-               "Fiscal Month picked from query param -------->"
-               // data.fiscalPeriod
+               "Fiscal Month picked from query param -------->",
+               startYear
             );
-         }
-      ).catch((error) => console.log(`Error in promises ${error}`));
+            resolve(startYear + "/07");
+         }),
+      ]);
 
-      return await balanceObj
-         // .modelAPI()
-         .findAll({
+      let records = await balanceObj.findAll(
+         {
             where: {
                glue: "and",
                rules: [
@@ -324,43 +326,45 @@ module.exports = {
                   {
                      key: "FY Period",
                      rule: "equals",
-                     value: data.fiscalPeriod,
+                     value: data.fyper,
                   },
                ],
             },
             populate: false,
-         })
-         .then((records) => {
-            // console.log(records);
+         },
+         { user: AB.id },
+         AB.req
+      );
+      // .then(() => {
+      // console.log(records);
 
-            data.categories.forEach((cat) => {
-               let catSum = 0;
-               cat.sub.forEach((sub) => {
-                  sub.sum = categorySum(sub.id, records);
-                  catSum = (100 * sub.sum + 100 * catSum) / 100;
-               });
-               cat.sum = catSum;
-            });
+      data.categories.forEach((cat) => {
+         let catSum = 0;
+         cat.sub.forEach((sub) => {
+            sub.sum = categorySum(sub.id, records);
+            catSum = (100 * sub.sum + 100 * catSum) / 100;
+         });
+         cat.sum = catSum;
+      });
 
-            data.localPercentage = Math.floor(
-               (data.categories[0].sum / data.categories[1].sum) * 100
-            );
+      data.localPercentage = Math.floor(
+         (data.categories[0].sum / data.categories[1].sum) * 100
+      );
 
-            console.log("data is outputting: -> -> -> -> -> -> -> -> ->");
-         })
-         .then(() => {
-            console.log(
-               " ~ file: local-income-expense.js ~ line 369 ~ prepareData: ~ data",
-               data
-            );
+      console.log("data is outputting: -> -> -> -> -> -> -> -> ->");
+      // })
+      // .then(() => {
+      console.log(
+         " ~ file: local-income-expense.js ~ line 369 ~ prepareData: ~ data",
+         data
+      );
 
-            return data;
-         })
-         .catch((error) => console.log(`Error in last promise ${error}`));
+      return data;
+      // });
    },
    template: () => {
       return fs.readFileSync(
-         path.join(__dirname, "templates", "hello-world.ejs"),
+         path.join(__dirname, "templates", "local-income-expense.ejs"),
          "utf8"
       );
    },

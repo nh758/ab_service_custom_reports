@@ -1,4 +1,4 @@
-<%- include _stylesheets -%>
+<%- include('/app/reports/templates/stylesheets') %>
     <style>
         body {
             overflow: auto;
@@ -33,7 +33,7 @@
 
         function refresh() {
             let fyVal = document.getElementById("fySelect").value;
-            window.location.href = `/template/balanceSheet?month=${fyVal}`;
+            window.location.href = `/report/balance-sheet?fyper=${fyVal}`;
         }
     </script>
 

@@ -209,25 +209,29 @@ module.exports = {
 
       balances = await balanceObj
          // .modelAPI()
-         .findAll({
-            where: {
-               glue: "and",
-               rules: [
-                  // TODO replace these rules @achoobert
-                  // {
-                  //    key: "RC Code",
-                  //    rule: "equals",
-                  //    value: rc
-                  // },
-                  // {
-                  //    key: "FY Period",
-                  //    rule: "equals",
-                  //    value: data.fyper,
-                  // },
-               ],
+         .findAll(
+            {
+               where: {
+                  glue: "and",
+                  rules: [
+                     // TODO replace these rules @achoobert
+                     // {
+                     //    key: "RC Code",
+                     //    rule: "equals",
+                     //    value: rc
+                     // },
+                     {
+                        key: "FY Period",
+                        rule: "equals",
+                        value: data.fyper,
+                     },
+                  ],
+               },
+               populate: false,
             },
-            populate: false,
-         });
+            { user: AB.id },
+            AB.req
+         );
 
       data.mccs = mccs;
       data.fnValueFormat = valueFormat;

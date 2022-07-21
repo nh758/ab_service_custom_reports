@@ -1,4 +1,4 @@
-<%- include _stylesheets -%>
+<%- include('/app/reports/templates/stylesheets') %>
     <style>
         body {
             overflow: auto;
@@ -14,7 +14,7 @@
         function refresh() {
             let rcVal = document.getElementById("rcType").value || "team";
             let fyVal = document.getElementById("fySelect").value;
-            window.location.href = `/template/balanceReport?rc=${rcVal}&month=${fyVal}`;
+            window.location.href = `/report/balance-report?rc=${rcVal}&fyper=${fyVal}`;
         }
     </script>
     <center>
@@ -26,8 +26,8 @@
                 RC:
             </span>
             <select class="selector" id="rcType" onchange="refresh()">
-                <option value="team" <% if (rcType=="team") { %> selected <% } %>>My Team</option>
-                <option value="qx" <% if (rcType=="qx") { %> selected <% } %>>My QX</option>
+                <option value="team" <% if (rcType=="team" ) { %> selected <% } %>>My Team</option>
+                <option value="qx" <% if (rcType=="qx" ) { %> selected <% } %>>My QX</option>
             </select>
             <span style="font-weight: normal;">
                 FY Period:

@@ -72,7 +72,7 @@ function GetRC(AB, queryId) {
    return new Promise((next, bad) => {
       queryRC
          // .findAll({}, userData, AB.req)
-         .findAll({}, userData)
+         .findAll({}, { user: AB.id }, AB.req)
          .then((list) => {
             let rcNames = (list || []).map((rc) => rc["BASE_OBJECT.RC Name"]);
 
@@ -98,26 +98,30 @@ function GetFYMonths(AB) {
 
    return new Promise((next, bad) => {
       objFYMonth
-         .findAll({
-            where: {
-               glue: "and",
-               rules: [
+         .findAll(
+            {
+               where: {
+                  glue: "and",
+                  rules: [
+                     {
+                        key: "Status",
+                        rule: "equals",
+                        value: "1592549786113",
+                     },
+                  ],
+               },
+               populate: false,
+               sort: [
                   {
-                     key: "Status",
-                     rule: "equals",
-                     value: "1592549786113",
+                     key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
+                     dir: "DESC",
                   },
                ],
+               limit: 12,
             },
-            populate: false,
-            sort: [
-               {
-                  key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-                  dir: "DESC",
-               },
-            ],
-            limit: 12,
-         })
+            { user: AB.id },
+            AB.req
+         )
          .then((list) => {
             next(list.map((item) => item["FY Per"]));
          })
@@ -164,10 +168,14 @@ function GetBalances(AB, rc, fyPeriod, extraRules = []) {
 
    return new Promise((next, bad) => {
       objBalance
-         .findAll({
-            where: cond,
-            populate: true,
-         })
+         .findAll(
+            {
+               where: cond,
+               populate: true,
+            },
+            { user: AB.id },
+            AB.req
+         )
          .then((list) => {
             next(list);
          })
@@ -184,13 +192,13 @@ function valueFormat(number) {
 module.exports = {
    // GET: /template/balanceReport
    // balanceReport: (req, res) => {
-   prepareData: async (AB, { rc, month }) => {
+   prepareData: async (AB, { rc, fyper }) => {
       // let languageCode = GetLanguageCode(req);
 
       let viewData = GetViewDataBalanceReport(
          "en", // languageCode,
          rc,
-         month
+         fyper
       );
 
       /**
@@ -291,7 +299,7 @@ module.exports = {
    },
    template: () => {
       return fs.readFileSync(
-         path.join(__dirname, "templates", "hello-world.ejs"),
+         path.join(__dirname, "templates", "balance-report.ejs"),
          "utf8"
       );
    },

@@ -212,11 +212,11 @@ function GetFYMonths(AB) {
                glue: "and",
                rules: [
                   // TODO: critical reenable @achoobert
-                  // {
-                  //    key: "Status",
-                  //    rule: "equals",
-                  //    value: "1592549786113"
-                  // }
+                  {
+                     key: "Status",
+                     rule: "equals",
+                     value: "1592549786113",
+                  },
                ],
             },
             populate: false,
@@ -297,12 +297,12 @@ function valueFormat(number) {
 module.exports = {
    // GET: /template/balanceSheet
    // balanceSheet: (req, res) => {
-   prepareData: async (AB, { rc, month }) => {
+   prepareData: async (AB, { rc, fyper }) => {
       console.log("prepareData in balance-sheet is running");
       // TODO
       let languageCode = "en"; // GetLanguageCode(req);
 
-      var data = GetViewDataBalanceSheet(languageCode, rc || null, month); //;
+      var data = GetViewDataBalanceSheet(languageCode, rc || null, fyper); //;
 
       data.fyOptions = await GetFYMonths(AB); //(AB.objectByID(OBJECT_IDS.FY_MONTH)?.model())
 

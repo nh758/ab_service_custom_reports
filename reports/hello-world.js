@@ -2,10 +2,11 @@ const path = require("path");
 const fs = require("fs");
 module.exports = {
    prepareData: async (AB, { input }) => {
+      input = input || "no input.";
       const data = {
          promiseOutput: "no data",
       };
-      console.log("file from hello world");
+
       // A simple promise that resolves after a given time
       const timeOut = (t) => {
          return new Promise((resolve, reject) => {
@@ -23,8 +24,11 @@ module.exports = {
          (result) => (data.promiseOutput = result)
          // console.log(result)
       ); // ["Completed in 1000", "Completed in 2000"]
-      // console.log(AB);
-      return { output: `earth ${data.promiseOutput}` };
+      console.log(AB);
+      return {
+         output: `earth ${data.promiseOutput}`,
+         output1: `input: ${input} user: ${AB.id}`,
+      };
    },
    template: () => {
       return fs.readFileSync(
