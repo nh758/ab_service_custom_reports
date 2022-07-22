@@ -181,7 +181,6 @@ module.exports = {
                   where: {
                      glue: "and",
                      rules: [
-                        // TODO CRITICAL reenable this @achoobert
                         {
                            key: "Status",
                            rule: "equals",

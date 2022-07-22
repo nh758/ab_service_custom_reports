@@ -3,30 +3,12 @@ const fs = require("fs");
 
 const OBJECT_IDS = {
    FY_MONTH: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
-   ACCOUNT: "c1a3642d-3863-4eb7-ac98-3dd18de3e683",
    BALANCE: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
 };
 
 const QUERY_IDS = {
    MyTeamRC: "241a977c-7748-420d-9dcb-eff53e66a43f",
    MyQXRC: "2e3e423b-fcec-4221-9a9c-7a670fbba65e",
-   scopeFilterQXCenter: "ee0c1ac3-7391-4dd5-8d2e-83da121db100",
-   scopeFilterTeam: "b60dc145-62b7-4ada-a617-632d9f5c3249",
-};
-
-const ACCOUNT_CATEGORIES = {
-   Assets: "1585806356532",
-   Liabilities: "1585806356570",
-   Equity: "1585806356643",
-   Expenses: "1585806356789",
-   Income: "1590392412833",
-};
-
-const ITEM_TYPES = {
-   Header: "header",
-   Total: "total",
-   TotalSecondary: "secondary-total",
-   TotalTertiary: "tertiary-total",
 };
 
 function GetViewDataBalanceReport(rc, fyMonth) {
@@ -44,23 +26,12 @@ function GetViewDataBalanceReport(rc, fyMonth) {
 }
 
 function GetRC(AB, queryId) {
-   var userData = AB.id;
-   // const queryRC = ABSystemObject.getApplication().queries(
-   //    (o) => o.id == queryId
-   // )[0];
    const queryRC = AB.queryByID(queryId).model();
-   // .catch((error) =>
-   //    console.dir(
-   //       `Error in ~ file: balance-report.js ~ line 60 ~ GetRC ~ queryId ${error}`,
-   //       queryId
-   //    )
-   // );
 
    if (queryRC == null) return Promise.resolve([]);
 
    return new Promise((next, bad) => {
       queryRC
-         // .findAll({}, userData, AB.req)
          .findAll({}, { user: AB.id }, AB.req)
          .then((list) => {
             let rcNames = (list || []).map((rc) => rc["BASE_OBJECT.RC Name"]);

@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { forEach } = require("lodash");
+const { forEach } = require("lodash"); // is this used?
 const path = require("path");
 
 const OBJECT_IDS = {
@@ -225,12 +225,6 @@ function GetFYMonths(AB) {
 }
 
 function GetBalances(AB, rc, fyPeriod, extraRules = []) {
-   // console.log(
-   //    "🚀 ~ file: balance-sheet.js ~ line 241 ~ GetBalances ~ rc, fyPeriod",
-   //    rc,
-   //    fyPeriod
-   // );
-
    const objBalance = AB.objectByID(OBJECT_IDS.BALANCE).model();
 
    if (objBalance == null || fyPeriod == null) {
@@ -285,7 +279,6 @@ function valueFormat(number) {
 
 module.exports = {
    // GET: /template/balanceSheet
-   // balanceSheet: (req, res) => {
    prepareData: async (AB, { rc, fyper }) => {
       console.log("prepareData in balance-sheet is running");
 
@@ -326,7 +319,6 @@ module.exports = {
          }
       });
       return data;
-      // .catch((error) => console.log(`Error in promises ${error}`));
    },
    template: () => {
       return fs.readFileSync(

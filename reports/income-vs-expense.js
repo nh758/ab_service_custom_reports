@@ -14,9 +14,8 @@ function valueFormat(number) {
 }
 
 module.exports = {
-   // GET: /template/localIncomeExpense
+   // GET: /report/local-income-expense
    // get the local and expense income and calculate the sums
-   // ! getData: function(req, res) {
    prepareData: async (AB, { fyper }) => {
       // Object Ids
       const ids = {
@@ -182,10 +181,6 @@ module.exports = {
       }
       data.fyperstart = startYear + "/07";
 
-      //console.log("Fiscal Month picked from query param -->", data.fyper);
-      // let balanceObj = ABSystemObject.getApplication().objects(
-      //    (o) => o.id == "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804"
-      // )[0];
       let balanceObj = AB.objectByID(ids.balanceID).model();
 
       balances = await balanceObj
@@ -461,11 +456,6 @@ module.exports = {
       let expenseTotals = calculateGroupSums(7, 8);
       let internalTransferTotals = calculateGroupSums(9);
 
-      // console.log(
-      //    "expenseTotals ------------------>",
-      //    expenseTotals
-      // );
-      // console.log("incomeTotals ------------------>", incomeTotals);
       let netTotals = [];
       for (let i = 0; i < incomeReceivedTotals.length; i++) {
          // Total Income Received - Total Income transfer to CCC - Total Expenses + Total Internal Transfers
@@ -502,12 +492,6 @@ module.exports = {
          en: "Net Income (loss) from Balance Sheet",
          zh: "Balance Sheet 中的净收入(损失) ",
       };
-
-      // console.log("data is outputting: -> -> -> -> -> -> -> -> ->");
-      // console.log(
-      //    " ~ file: income-vs-expense.js ~ line 534 ~ prepareData: ~ data",
-      //    data
-      // );
 
       return data;
    },
