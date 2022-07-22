@@ -18,25 +18,6 @@ module.exports = {
    // get the local and expense income and calculate the sums
    // ! getData: function(req, res) {
    prepareData: async (AB, { fyper }) => {
-      var languageCode = "";
-      // get our passed params
-      console.log(
-         "params ---------------------------------------->",
-         fyper,
-         languageCode
-      );
-      fyper = fyper ? fyper : undefined;
-      // get the users preferred language
-      languageCode = languageCode ? languageCode : "en";
-
-      // if (req?.query?.languageCode) {
-      //    languageCode = req.query.languageCode;
-      // }
-
-      if (languageCode == "zh-hans") {
-         languageCode = "zh";
-      }
-
       // Object Ids
       const ids = {
          balanceID: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
@@ -509,7 +490,6 @@ module.exports = {
          }
       }
       data.balSheetTotal = balSheetTotal;
-      data.languageCode = languageCode;
       data.total = {
          en: "Total",
          zh: "总额",
@@ -523,11 +503,11 @@ module.exports = {
          zh: "Balance Sheet 中的净收入(损失) ",
       };
 
-      console.log("data is outputting: -> -> -> -> -> -> -> -> ->");
-      console.log(
-         " ~ file: income-vs-expense.js ~ line 534 ~ prepareData: ~ data",
-         data
-      );
+      // console.log("data is outputting: -> -> -> -> -> -> -> -> ->");
+      // console.log(
+      //    " ~ file: income-vs-expense.js ~ line 534 ~ prepareData: ~ data",
+      //    data
+      // );
 
       return data;
    },

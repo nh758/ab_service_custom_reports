@@ -23,20 +23,9 @@ const ITEM_TYPES = {
    TotalTertiary: "tertiary-total",
 };
 
-// function GetLanguageCode(req) {
-//    let languageCode =
-//       req.user.data.languageCode || req.query.languageCode || "en";
-
-//    if (languageCode == "zh-hans") {
-//       languageCode = "zh";
-//    }
-//    return languageCode;
-// }
-
-function GetViewDataBalanceSheet(languageCode, rc, fyMonth) {
+function GetViewDataBalanceSheet(rc, fyMonth) {
    return {
       fnValueFormat: valueFormat,
-      languageCode: languageCode,
       title: {
          en: "Balance Sheet",
          zh: "",
@@ -299,10 +288,8 @@ module.exports = {
    // balanceSheet: (req, res) => {
    prepareData: async (AB, { rc, fyper }) => {
       console.log("prepareData in balance-sheet is running");
-      // TODO
-      let languageCode = "en"; // GetLanguageCode(req);
 
-      var data = GetViewDataBalanceSheet(languageCode, rc || null, fyper); //;
+      var data = GetViewDataBalanceSheet(rc || null, fyper); //;
 
       data.fyOptions = await GetFYMonths(AB); //(AB.objectByID(OBJECT_IDS.FY_MONTH)?.model())
 

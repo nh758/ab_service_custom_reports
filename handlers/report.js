@@ -52,10 +52,20 @@ module.exports = {
          // get the AB for the current tenant
          const AB = await ABBootstrap.init(req);
          const key = req.param("reportKey");
+         const languageCode =
+            req._user.languageCode || req.param("languageCode") || "en";
+
+         // is this needed?
+         if (languageCode == "zh-hans") {
+            languageCode = "zh";
+         }
 
          const report = reports[key];
          if (!report) cb(new Error("No report template found"));
          const data = await report.prepareData(AB, req.param("data"));
+
+         data["languageCode"] = languageCode;
+
          const template = report.template();
 
          const html = ejs.render(template, data);

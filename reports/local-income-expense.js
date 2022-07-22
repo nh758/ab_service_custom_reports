@@ -7,62 +7,18 @@ const fs = require("fs");
 const path = require("path");
 
 module.exports = {
-   // GET: /template/localIncomeExpense
+   // GET: /report/local-income-expense
    // get the local and expense income and calculate the sums
-   // ! getData: function(req, res) {
    prepareData: async (AB, { rc, fyper }) => {
       // get our passed params
-      //console.log("params -------------->", req);
       rc = rc ? rc : undefined;
-      console.log(
-         "~ file: local-income-expense.js ~ line 17 ~ prepareData: ~ rc",
-         rc
-      );
       fyper = fyper ? fyper : undefined;
-      console.log(
-         "~ file: local-income-expense.js ~ line 18 ~ prepareData: ~ fyper",
-         fyper
-      );
 
       const ids = {
          myRCsQueryId: "241a977c-7748-420d-9dcb-eff53e66a43f",
          balanceObjId: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
          fiscalMonthObjId: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
       };
-
-      // TODO make sure there's a language code
-      // // get the users preferred language
-      // let languageCode = req.user.data.languageCode
-      //    ? req.user.data.languageCode
-      //    : "en";
-
-      if (AB.query && AB.query.languageCode) {
-         console.log(
-            "languageCode --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
-            AB.query.languageCode
-         );
-         // languageCode = AB.query.languageCode;
-      }
-
-      // console.log(
-      //    "id --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
-      //    AB.id
-      // );
-      // console.log(
-      //    "User --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
-      //    AB.req
-      // );
-      // console.log(
-      //    "UserForm --------------~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>",
-      //    AB.req.controller.models.UserForm
-      // );
-
-      // if (languageCode == "zh-hans") {
-      let languageCode = "zh";
-      // }
-
-      //console.log("language ------->", languageCode);
-
       // Our data object
       var data = {
          title: {
@@ -70,7 +26,6 @@ module.exports = {
             zh: "本地收入VS 支出",
          },
          rc: rc,
-         languageCode: languageCode,
          total: {
             en: "Total",
             zh: "总额",
@@ -179,7 +134,6 @@ module.exports = {
             },
          ],
       };
-      // debugger;
       function accountInCategory(account, category) {
          const accountDigits = account.toString().split("");
          const categoryDigits = category.toString().split("");
@@ -249,17 +203,15 @@ module.exports = {
             ),
       ]);
 
-      // console.log("myRCs ----------------->", myRCs);
       [data.rc, data.fiscalPeriodstart] = await Promise.all([
          new Promise((resolve, reject) => {
-            // console.log("My Team RCs ---------------->", rcs);
             if (!rcs || !rcs.length) {
                reject(new Error("My Team RCs not found"));
             }
 
             let rcOptions = [];
-            rcs.forEach((rc) => {
-               rcOptions.push(rc["BASE_OBJECT.RC Name"]);
+            rcs.forEach((rcData) => {
+               rcOptions.push(rcData["BASE_OBJECT.RC Name"]);
             });
 
             data.rcOptions = rcOptions.sort(function (a, b) {
@@ -272,7 +224,6 @@ module.exports = {
             resolve(rc);
          }),
          new Promise((resolve, reject) => {
-            // let fiscalMonthsArray = fyper;
             if (!fiscalMonthsArray || !fiscalMonthsArray.length) {
                reject(new Error("Fiscal Months not found"));
             }
@@ -304,10 +255,6 @@ module.exports = {
             if (month < 7) {
                startYear = year - 1;
             }
-            console.log(
-               "Fiscal Month picked from query param -------->",
-               startYear
-            );
             resolve(startYear + "/07");
          }),
       ]);
@@ -317,7 +264,6 @@ module.exports = {
             where: {
                glue: "and",
                rules: [
-                  // TODO critical reenable
                   {
                      key: "RC Code",
                      rule: "equals",
@@ -335,8 +281,6 @@ module.exports = {
          { user: AB.id },
          AB.req
       );
-      // .then(() => {
-      // console.log(records);
 
       data.categories.forEach((cat) => {
          let catSum = 0;
@@ -351,16 +295,7 @@ module.exports = {
          (data.categories[0].sum / data.categories[1].sum) * 100
       );
 
-      console.log("data is outputting: -> -> -> -> -> -> -> -> ->");
-      // })
-      // .then(() => {
-      console.log(
-         " ~ file: local-income-expense.js ~ line 369 ~ prepareData: ~ data",
-         data
-      );
-
       return data;
-      // });
    },
    template: () => {
       return fs.readFileSync(

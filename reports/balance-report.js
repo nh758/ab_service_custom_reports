@@ -29,24 +29,13 @@ const ITEM_TYPES = {
    TotalTertiary: "tertiary-total",
 };
 
-// function GetLanguageCode(req) {
-//    let languageCode =
-//       req.user.data.languageCode || req.query.languageCode || "en";
-
-//    if (languageCode == "zh-hans") {
-//       languageCode = "zh";
-//    }
-//    return languageCode;
-// }
-
-function GetViewDataBalanceReport(languageCode, rc, fyMonth) {
+function GetViewDataBalanceReport(rc, fyMonth) {
    return {
       title: {
          en: "RC Balances",
          zh: "",
       },
       fnValueFormat: valueFormat,
-      languageCode: languageCode,
       rcType: rc,
       fyPeriod: fyMonth,
       fyOptions: [],
@@ -193,13 +182,7 @@ module.exports = {
    // GET: /template/balanceReport
    // balanceReport: (req, res) => {
    prepareData: async (AB, { rc, fyper }) => {
-      // let languageCode = GetLanguageCode(req);
-
-      let viewData = GetViewDataBalanceReport(
-         "en", // languageCode,
-         rc,
-         fyper
-      );
+      let viewData = GetViewDataBalanceReport(rc, fyper);
 
       /**
        * {
@@ -230,7 +213,7 @@ module.exports = {
                   new Promise((next, err) => {
                      GetRC(
                         AB,
-                        viewData.rcType == "qx"
+                        viewData.rcType == "qx" // this is the rc from GET
                            ? QUERY_IDS.MyQXRC
                            : QUERY_IDS.MyTeamRC
                      )
