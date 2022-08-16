@@ -200,7 +200,6 @@ function GetFYMonths(AB) {
             where: {
                glue: "and",
                rules: [
-                  // TODO: critical reenable @achoobert
                   {
                      key: "Status",
                      rule: "equals",

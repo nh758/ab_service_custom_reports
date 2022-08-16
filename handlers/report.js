@@ -52,7 +52,7 @@ module.exports = {
          // get the AB for the current tenant
          const AB = await ABBootstrap.init(req);
          const key = req.param("reportKey");
-         const languageCode =
+         let languageCode =
             req._user.languageCode || req.param("languageCode") || "en";
 
          // is this needed?

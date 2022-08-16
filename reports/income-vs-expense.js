@@ -23,18 +23,14 @@ module.exports = {
          fiscalMonthID: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
       };
 
+      let balances = [];
       /**
       /* @const balances
       /* aka GL Segments. Should be filtered by the fiscal period the report is based on.
       /* mcc_code: balance link to rc, rc link to mcc, mcc has a code. The rc code should
       /* should start with mcc code.
       */
-      let balances = [];
 
-      /**
-      /* @const mccs
-      /* Can read from the MCC object
-     */
       let mccs = [
          { code: "01", label: "Staff" },
          { code: "02", label: "SLM" },
@@ -48,6 +44,10 @@ module.exports = {
          { code: "10", label: "National Leadership" },
          { code: "11", label: "Other/None" },
       ];
+      /**
+      /* @const mccs
+      /* Can read from the MCC object
+     */
 
       function calculateGroupSums(...groups) {
          // var t1 = new Date();
@@ -183,31 +183,30 @@ module.exports = {
 
       let balanceObj = AB.objectByID(ids.balanceID).model();
 
-      balances = await balanceObj
-         // .modelAPI()
-         .findAll(
-            {
-               where: {
-                  glue: "and",
-                  rules: [
-                     // TODO replace these rules @achoobert
-                     // {
-                     //    key: "RC Code",
-                     //    rule: "equals",
-                     //    value: rc
-                     // },
-                     {
-                        key: "FY Period",
-                        rule: "equals",
-                        value: data.fyper,
-                     },
-                  ],
-               },
-               populate: false,
+      balances = await balanceObj.findAll(
+         {
+            where: {
+               glue: "and",
+               rules: [
+                  // TODO replace these rules @achoobert
+                  // rc seems to not be defined for income vs expense?
+                  // {
+                  //    key: "RC Code",
+                  //    rule: "equals",
+                  //    value: rc,
+                  // },
+                  {
+                     key: "FY Period",
+                     rule: "equals",
+                     value: data.fyper,
+                  },
+               ],
             },
-            { user: AB.id },
-            AB.req
-         );
+            populate: false,
+         },
+         { user: AB.id },
+         AB.req
+      );
 
       data.mccs = mccs;
       data.fnValueFormat = valueFormat;

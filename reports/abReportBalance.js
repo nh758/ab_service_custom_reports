@@ -1,14 +1,14 @@
 const OBJECT_IDS = {
    FY_MONTH: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
    ACCOUNT: "c1a3642d-3863-4eb7-ac98-3dd18de3e683",
-   BALANCE: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804"
+   BALANCE: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
 };
 
 const QUERY_IDS = {
    MyTeamRC: "241a977c-7748-420d-9dcb-eff53e66a43f",
    MyQXRC: "2e3e423b-fcec-4221-9a9c-7a670fbba65e",
    scopeFilterQXCenter: "ee0c1ac3-7391-4dd5-8d2e-83da121db100",
-   scopeFilterTeam: "b60dc145-62b7-4ada-a617-632d9f5c3249"
+   scopeFilterTeam: "b60dc145-62b7-4ada-a617-632d9f5c3249",
 };
 
 const ACCOUNT_CATEGORIES = {
@@ -16,14 +16,14 @@ const ACCOUNT_CATEGORIES = {
    Liabilities: "1585806356570",
    Equity: "1585806356643",
    Expenses: "1585806356789",
-   Income: "1590392412833"
+   Income: "1590392412833",
 };
 
 const ITEM_TYPES = {
    Header: "header",
    Total: "total",
    TotalSecondary: "secondary-total",
-   TotalTertiary: "tertiary-total"
+   TotalTertiary: "tertiary-total",
 };
 
 function GetLanguageCode(req) {
@@ -42,7 +42,7 @@ function GetViewDataBalanceSheet(languageCode, rc, fyMonth) {
       languageCode: languageCode,
       title: {
          en: "Balance Sheet",
-         zh: ""
+         zh: "",
       },
       rc: rc,
       rcOptions: [],
@@ -51,37 +51,37 @@ function GetViewDataBalanceSheet(languageCode, rc, fyMonth) {
       items: [
          {
             title: "ASSETS",
-            type: ITEM_TYPES.Header
+            type: ITEM_TYPES.Header,
          },
          {
             id: 11,
             title: "11000 - Banks and Cash",
             type: ITEM_TYPES.TotalTertiary,
-            value: 0
+            value: 0,
          },
          {
             title: "Other Assets",
-            type: ITEM_TYPES.Header
+            type: ITEM_TYPES.Header,
          },
          {
             id: 12,
             title: "1200 - Receivables",
-            value: 0
+            value: 0,
          },
          {
             id: 14,
             title: "1400 - Products for Sale",
-            value: 0
+            value: 0,
          },
          {
             id: 15,
             title: "1500 - Advances and other current assets",
-            value: 0
+            value: 0,
          },
          {
             id: 16,
             title: "1600 - Investments",
-            value: 0
+            value: 0,
          },
          {
             id: "Sum12",
@@ -94,17 +94,17 @@ function GetViewDataBalanceSheet(languageCode, rc, fyMonth) {
                let val16 = items.find((x) => x.id == 16).value || 0;
 
                return val12 + val14 + val15 + val16;
-            }
+            },
          },
          {
             title: "Fixed Assets",
-            type: ITEM_TYPES.Header
+            type: ITEM_TYPES.Header,
          },
          {
             id: 17,
             title: "1700 - Fixed assets and depreciation",
             type: ITEM_TYPES.TotalTertiary,
-            value: 0
+            value: 0,
          },
          {
             title: "Total Assets",
@@ -116,31 +116,31 @@ function GetViewDataBalanceSheet(languageCode, rc, fyMonth) {
                let val17 = items.find((x) => x.id == 17).value || 0;
 
                return val11 + valSum12 + val17;
-            }
+            },
          },
          {
             title: "LIABILITIES",
-            type: ITEM_TYPES.Header
+            type: ITEM_TYPES.Header,
          },
          {
             id: 21,
             title: "2100 - Payroll items payable",
-            value: 0
+            value: 0,
          },
          {
             id: 22,
             title: "2200 - Payables",
-            value: 0
+            value: 0,
          },
          {
             id: 26,
             title: "2600 - Other Current Liabilities",
-            value: 0
+            value: 0,
          },
          {
             id: 27,
             title: "2700 - Long-term liabilities",
-            value: 0
+            value: 0,
          },
          {
             id: "SumLiabilities",
@@ -153,21 +153,21 @@ function GetViewDataBalanceSheet(languageCode, rc, fyMonth) {
                let val27 = items.find((x) => x.id == 27).value || 0;
 
                return val21 + val22 + val26 + val27;
-            }
+            },
          },
          {
             title: "FUND BALANCE",
-            type: ITEM_TYPES.Header
+            type: ITEM_TYPES.Header,
          },
          {
             id: 35,
             title: "3500 - Beginning fund balance",
-            value: 0
+            value: 0,
          },
          {
             id: 39,
             title: "3900 - Net income (loss) year-to-date",
-            value: 0
+            value: 0,
          },
          {
             id: "SumFundBalance",
@@ -178,7 +178,7 @@ function GetViewDataBalanceSheet(languageCode, rc, fyMonth) {
                let val39 = items.find((x) => x.id == 39).value || 0;
 
                return val35 + val39;
-            }
+            },
          },
          {
             title: "Total Liabilities and Fund Balance",
@@ -190,9 +190,9 @@ function GetViewDataBalanceSheet(languageCode, rc, fyMonth) {
                   items.find((x) => x.id == "SumFundBalance").value(items) || 0;
 
                return valSumLiabilities + valSumFundBalance;
-            }
-         }
-      ]
+            },
+         },
+      ],
    };
 }
 
@@ -200,14 +200,14 @@ function GetViewDataBalanceReport(languageCode, rc, fyMonth) {
    return {
       title: {
          en: "RC Balances",
-         zh: ""
+         zh: "",
       },
       fnValueFormat: valueFormat,
       languageCode: languageCode,
       rcType: rc,
       fyPeriod: fyMonth,
       fyOptions: [],
-      items: []
+      items: [],
    };
 }
 
@@ -222,7 +222,7 @@ function GetRC(userData, queryId, cond = {}) {
       queryRC
          .queryFind(
             {
-               where: cond
+               where: cond,
             },
             userData
          )
@@ -258,18 +258,18 @@ function GetFYMonths() {
                   {
                      key: "Status",
                      rule: "equals",
-                     value: "1592549786113"
-                  }
-               ]
+                     value: "1592549786113",
+                  },
+               ],
             },
             populate: false,
             sort: [
                {
                   key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-                  dir: "DESC"
-               }
+                  dir: "DESC",
+               },
             ],
-            limit: 12
+            limit: 12,
          })
          .then((list) => {
             next(list.map((item) => item["FY Per"]));
@@ -289,14 +289,14 @@ function GetBalances(rc, fyPeriod, extraRules = []) {
 
    let cond = {
       glue: "and",
-      rules: []
+      rules: [],
    };
 
    if (rc) {
       cond.rules.push({
          key: "RC Code",
          rule: "equals",
-         value: rc
+         value: rc,
       });
    }
 
@@ -304,7 +304,7 @@ function GetBalances(rc, fyPeriod, extraRules = []) {
       cond.rules.push({
          key: "FY Period",
          rule: "equals",
-         value: fyPeriod
+         value: fyPeriod,
       });
    }
 
@@ -319,7 +319,7 @@ function GetBalances(rc, fyPeriod, extraRules = []) {
          .modelAPI()
          .findAll({
             where: cond,
-            populate: true
+            populate: true,
          })
          .then((list) => {
             next(list);
@@ -376,15 +376,15 @@ module.exports = {
                               return;
                            }
 
-                           const category = bl.COANum__relation.Category.toString();
+                           const category =
+                              bl.COANum__relation.Category.toString();
                            if (
                               category == ACCOUNT_CATEGORIES.Assets ||
                               category == ACCOUNT_CATEGORIES.Liabilities ||
                               category == ACCOUNT_CATEGORIES.Equity
                            ) {
-                              let accNum = bl.COANum__relation[
-                                 "Acct Num"
-                              ].toString();
+                              let accNum =
+                                 bl.COANum__relation["Acct Num"].toString();
 
                               viewData.items.forEach((reportItem) => {
                                  if (
@@ -426,6 +426,7 @@ module.exports = {
          req.query.month
       );
 
+      let rcHash = {};
       /**
        * {
        *    rcName1: sum of balances,
@@ -433,7 +434,6 @@ module.exports = {
        *    ...
        * }
        */
-      let rcHash = {};
 
       Promise.resolve()
          // Pull FY month list
@@ -472,13 +472,13 @@ module.exports = {
                      {
                         key: "RC Code",
                         rule: "in",
-                        value: RCs
+                        value: RCs,
                      },
                      {
                         key: "COA Num",
                         rule: "in",
-                        value: [3991, 3500]
-                     }
+                        value: [3991, 3500],
+                     },
                   ];
 
                   GetBalances(
@@ -506,7 +506,7 @@ module.exports = {
             Object.keys(rcHash).forEach((rcCode) => {
                viewData.items.push({
                   title: rcCode,
-                  value: rcHash[rcCode]
+                  value: rcHash[rcCode],
                });
             });
 
@@ -520,5 +520,5 @@ module.exports = {
                viewData
             );
          });
-   }
+   },
 };
