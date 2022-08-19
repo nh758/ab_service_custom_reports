@@ -13,9 +13,18 @@ const reports = {
    // reportKey: require(/pathToReport)  -> Should export:
    //                prepareData(AB, req.param("data")) => obj - data for the ejs tempalte
    //                template() => string - ejs template string
+   "hello-world": require("../reports/hello-world.js"),
    "well-invoice": require("../reports/well-invoice.js"),
    "well-receipt": require("../reports/well-receipt.js"),
+   "local-income-expense": require("../reports/local-income-expense.js"),
+   "income-vs-expense": require("../reports/income-vs-expense.js"),
+   "balance-sheet": require("../reports/balance-sheet.js"),
+   "balance-report": require("../reports/balance-report.js"),
 };
+// "balanceReport",
+// "balanceSheet",
+// "incomeVsExpense",
+// "localIncomeExpense",
 
 module.exports = {
    /**
@@ -43,10 +52,20 @@ module.exports = {
          // get the AB for the current tenant
          const AB = await ABBootstrap.init(req);
          const key = req.param("reportKey");
+         let languageCode =
+            req._user.languageCode || req.param("languageCode") || "en";
+
+         // is this needed?
+         if (languageCode == "zh-hans") {
+            languageCode = "zh";
+         }
 
          const report = reports[key];
          if (!report) cb(new Error("No report template found"));
          const data = await report.prepareData(AB, req.param("data"));
+
+         data["languageCode"] = languageCode;
+
          const template = report.template();
 
          const html = ejs.render(template, data);
