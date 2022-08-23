@@ -149,12 +149,12 @@ async function getJEarchive(AB, rc, fyper) {
 function calculateRCs(balances) {
    const rcs = {};
 
-   (balances || []).forEach((bal) => {
-      const COANum = bal["COA Num"] || "";
+   (balances ?? []).forEach((bal) => {
+      const COANum = bal["COA Num"] ?? "";
       const rcName = bal["RC Code"];
 
       // Init RC object
-      rcs[rcName] = rcs[rcName] || {
+      rcs[rcName] = rcs[rcName] ?? {
          name: rcName,
          begin: 0,
          income: 0,
@@ -173,7 +173,7 @@ function calculateRCs(balances) {
       // Income = Sum of credit (4xxxx, 5xxx) - Sum of debit (4xxxx, 5xxx)
       else if (COANum.startsWith("4") || COANum.startsWith("5")) {
          rcs[rcName].income +=
-            parseFloat(bal["Credit"] || 0) - parseFloat(bal["Debit"] || 0);
+            parseFloat(bal["Credit"] ?? 0) - parseFloat(bal["Debit"] ?? 0);
       }
 
       // Expense = Sum of debit (6xxx, 7xxx, 8xxx) - Sum of credit (6xxx, 7xxx, 8xxx)
@@ -183,16 +183,16 @@ function calculateRCs(balances) {
          COANum.startsWith("8")
       ) {
          rcs[rcName].expense +=
-            parseFloat(bal["Debit"] || 0) - parseFloat(bal["Credit"] || 0);
+            parseFloat(bal["Debit"] ?? 0) - parseFloat(bal["Credit"] ?? 0);
       }
 
       // Transfers = 91xx (credit - debit) - 9500 (debit -credit)
       else if (COANum.startsWith("91")) {
          rcs[rcName].transfers +=
-            parseFloat(bal["Credit"] || 0) - parseFloat(bal["Debit"] || 0);
+            parseFloat(bal["Credit"] ?? 0) - parseFloat(bal["Debit"] ?? 0);
       } else if (COANum == "9500") {
          rcs[rcName].transfers -=
-            parseFloat(bal["Debit"] || 0) - parseFloat(bal["Credit"] || 0);
+            parseFloat(bal["Debit"] ?? 0) - parseFloat(bal["Credit"] ?? 0);
       }
    });
 
@@ -206,7 +206,7 @@ function calculateRcDetail(jeArchives, fyper) {
       transfers: [],
    };
 
-   (jeArchives || []).forEach((jeArc) => {
+   (jeArchives ?? []).forEach((jeArc) => {
       // Expense (6xxx, 7xxx, 8xxx)
       if (
          jeArc.balId.startsWith(`${fyper}-6`) ||
@@ -266,7 +266,7 @@ module.exports = {
 
       // The second part is details of RCs, date, description, amount, which are from JE Archive.
       if (rc) {
-         data.rcs[rc] = data.rcs[rc] || {};
+         data.rcs[rc] = data.rcs[rc] ?? {};
          data.rcs[rc].details = calculateRcDetail(jeArchives, fyper);
       }
 
