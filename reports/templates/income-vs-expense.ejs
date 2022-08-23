@@ -29,6 +29,10 @@
       border-bottom: 1px solid lightgray;
    }
 
+   label {
+      min-width: 9em;
+   }
+
    td.decimal {
       text-align: right;
    }
@@ -94,7 +98,7 @@
    <% accountGroups.forEach((group)=>{ %>
       <% if (group.subGroups){ %>
          <tr class="sub">
-            <td><b>
+            <td class="label"><b>
                   <%= group.label[languageCode] %>
                </b></td>
             <% for(let i=1; i< numberOfColumns; i++) { %>
@@ -103,7 +107,7 @@
          </tr>
          <% group.subGroups.forEach((subGroup)=>{ %>
             <tr>
-               <td>
+               <td class="label">
                   <%= subGroup.label[languageCode] %>
                </td>
                <% subGroup.sums.forEach((sum)=>{ %>
