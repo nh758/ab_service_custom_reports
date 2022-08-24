@@ -204,7 +204,7 @@ module.exports = {
             },
             populate: false,
          },
-         { user: AB.id },
+         { username: AB.id },
          AB.req
       );
 

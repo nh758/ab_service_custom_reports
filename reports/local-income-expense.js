@@ -172,7 +172,7 @@ module.exports = {
                //    rules: [],
                // },
             },
-            { user: AB.id },
+            { username: AB.id },
             AB.req
          ),
          fiscalMonthObj // .modelAPI()
@@ -197,7 +197,7 @@ module.exports = {
                   ],
                   limit: 12,
                },
-               { user: AB.id },
+               { username: AB.id },
                AB.req
             ),
       ]);
@@ -277,7 +277,7 @@ module.exports = {
             },
             populate: false,
          },
-         { user: AB.id },
+         { username: AB.id },
          AB.req
       );
 

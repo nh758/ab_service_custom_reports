@@ -32,7 +32,7 @@ function GetRC(AB, queryId) {
 
    return new Promise((next, bad) => {
       queryRC
-         .findAll({}, { user: AB.id }, AB.req)
+         .findAll({}, { username: AB.id }, AB.req)
          .then((list) => {
             let rcNames = (list || []).map((rc) => rc["BASE_OBJECT.RC Name"]);
 
@@ -79,7 +79,7 @@ function GetFYMonths(AB) {
                ],
                limit: 12,
             },
-            { user: AB.id },
+            { username: AB.id },
             AB.req
          )
          .then((list) => {
@@ -133,7 +133,7 @@ function GetBalances(AB, rc, fyPeriod, extraRules = []) {
                where: cond,
                populate: true,
             },
-            { user: AB.id },
+            { username: AB.id },
             AB.req
          )
          .then((list) => {
