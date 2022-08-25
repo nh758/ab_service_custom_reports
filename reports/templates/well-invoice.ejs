@@ -1,135 +1,166 @@
 <style>
    body {
-       -webkit-appearance: none;
-       -webkit-font-smoothing: antialiased;
-       background-color: #fff;
-       border: 0 solid #dadee0;
-       color: #475466;
-       cursor: default;
-       font-family: Roboto,sans-serif;
-       font-size: 14px;
-       font-weight: 400;
-       letter-spacing: .2px;
-       overflow: hidden;
-       white-space: normal;
+      -webkit-appearance: none;
+      -webkit-font-smoothing: antialiased;
+      background-color: #fff;
+      border: 0 solid #dadee0;
+      color: #475466;
+      cursor: default;
+      font-family: Roboto, sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: .2px;
+      overflow: hidden;
+      white-space: normal;
    }
+
    table {
       border-collapse: collapse;
    }
+
    tr:hover {
-      background: rgba(0,0,0,0.05);
+      background: rgba(0, 0, 0, 0.05);
    }
+
    th {
       border-bottom: 2px solid gray;
       font-size: 18px;
    }
+
    td {
       border-bottom: 1px solid lightgray;
    }
-   td, th {
+
+   td,
+   th {
       padding: 5px 10px;
    }
+
    tr.total {
       background: #333;
       color: white;
    }
+
    tr.sub {
       background: lightgray;
    }
+
    h1 {
       font-size: 32px;
       margin: 10px;
    }
+
    h2 {
       font-size: 24px;
       margin: 10px;
    }
+
    .footer {
-     position: absolute;
-     bottom: 0;
-     display:flex;
-     width: 210mm;
-     justify-content:space-between;
+      position: absolute;
+      bottom: 0;
+      display: flex;
+      width: 210mm;
+      justify-content: space-between;
    }
-   .footer > div {
-     padding: 10px;
-     color: #606060;
-     text-align: right;
-     text-decoration-color: "dgray";
-     font-size: 12px;
-     font-weight: 100;
+
+   .footer>div {
+      padding: 10px;
+      color: #606060;
+      text-align: right;
+      text-decoration-color: "dgray";
+      font-size: 12px;
+      font-weight: 100;
 
    }
-   .footer > div:first-child {
-     text-align: left;
+
+   .footer>div:first-child {
+      text-align: left;
    }
+
    .logo {
       width: 30%;
       float: right;
    }
+
    .page {
       height: 297mm;
       width: 205mm;
    }
 
    @media screen {
-    div.page {
-     margin: 5mm 5mm 5mm 10mm;
-     }
+      div.page {
+         margin: 5mm 5mm 5mm 10mm;
+      }
    }
 
    @media print {
       div.page {
-      margin: 0mm;
+         margin: 0mm;
       }
    }
 </style>
 <div class="page">
-   <img class="logo" src="<%= logo %>"/>
-   <h1><%= type %> Invoice</h1>
-   <p><%= payee %></p>
-   <p><%= date %></p>
+   <img class="logo" src="<%= logo %>" />
+   <h1>
+      <%= type %> Invoice
+   </h1>
+   <p>
+      <%= payee %>
+   </p>
+   <p>
+      <%= date %>
+   </p>
    <table>
-    <tr>
-      <th>Date</th>
-      <th>Description</th>
-      <th>Fee</th>
-      <th>Payment</th>
-      <th>Balance</th>
-    </tr>
-    <% let bal = 0 %>
-    <% transactions.forEach(function(transaction){ %>
-      <% bal = transaction.Type == "Charge" ? bal + transaction.Amount : bal - transaction.Amount %>
-    <tr>
-      <td><%= transaction.Date.toLocaleDateString('en-US') %></td>
-      <td><%= transaction.Description %> - <%= transaction.clients.join(", ") %></td>
-      <td><%= transaction.Type == "Charge" ? transaction.Amount : 0 %></td>
-      <td><%= transaction.Type == "Payment" ? transaction.Amount : 0 %></td>
-      <td><%= bal %></td>
-    </tr>
-    <% }); %>
-    <tr>
-      <td/>
-      <td><b>Total</b></td>
-      <td/>
-      <td/>
-      <td><b><%= bal %></b></td>
-    </tr>
+      <tr>
+         <th>Date</th>
+         <th>Description</th>
+         <th>Fee</th>
+         <th>Payment</th>
+         <th>Balance</th>
+      </tr>
+      <% let bal=0 %>
+         <% transactions.forEach(function(transaction){ %>
+            <% bal=transaction.Type=="Charge" ? bal + transaction.Amount : bal - transaction.Amount %>
+               <tr>
+                  <td>
+                     <%= transaction.Date.toLocaleDateString('en-US') %>
+                  </td>
+                  <td>
+                     <%= transaction.Description %> - <%= transaction.clients.join(", ") %></td>
+      <td><%= transaction.Type == " Charge" ? transaction.Amount : 0 %>
+                  </td>
+                  <td>
+                     <%= transaction.Type=="Payment" ? transaction.Amount : 0 %>
+                  </td>
+                  <td>
+                     <%= bal %>
+                  </td>
+               </tr>
+               <% }); %>
+                  <tr>
+                     <td />
+                     <td><b>Total</b></td>
+                     <td />
+                     <td />
+                     <td><b>
+                           <%= bal %>
+                        </b></td>
+                  </tr>
    </table>
    <div class="footer">
-    <div>
-      <p>
-        <%= entity["Address L1"] %><br>
-        <%= entity["Address L2"] %><br>
-        <%= entity["Address L3"] %>
-      </p>
-    </div>
-    <div>
-      <p>
-        <%= entity["Phone Thai"] %> (Thailand)<br>
-        <%= entity["Phone International"] %> (International)<br>
-        <%= entity["Finance Email"] %>
-      </p>
-    </div>
+      <div>
+         <p>
+            <%= entity["Address L1"] %><br>
+               <%= entity["Address L2"] %><br>
+                  <%= entity["Address L3"] %>
+         </p>
+      </div>
+      <div>
+         <p>
+            <%= entity["Phone Thai"] %> (Thailand)<br>
+               <%= entity["Phone International"] %> (International)<br>
+                  <%= entity["Finance Email"] %>
+         </p>
+      </div>
    </div>
-  </div>
+</div>
