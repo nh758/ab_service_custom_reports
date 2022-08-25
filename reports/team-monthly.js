@@ -75,14 +75,14 @@ async function getBalances(AB, rc, fyper) {
       rules.push({
          key: FIELD_IDS.BALANCE_RCCode,
          rule: "equals",
-         values: rc,
+         value: rc,
       });
    }
    if (fyper) {
       rules.push({
          key: FIELD_IDS.BALANCE_FYPeriod,
          rule: "equals",
-         values: fyper,
+         value: fyper,
       });
    }
 
@@ -111,7 +111,7 @@ async function getJEarchive(AB, rc, fyper) {
       {
          key: FIELD_IDS.JE_ARCHIVE_BAL_ID,
          rule: "contains",
-         values: `${fyper}-${rc}`,
+         value: `${fyper}-${rc}`,
       },
    ];
 
