@@ -91,7 +91,7 @@
                 <% rcs[rcVal].details.expenses.forEach(function(jeArc) { %>
                     <tr>
                         <td>
-                            <%= jeArc.date || "" %>
+                            <%= jeArc._dateFormat || "" %>
                         </td>
                         <td>
                             <%= jeArc.description || "" %>
@@ -135,7 +135,7 @@
                                 <% rcs[rcVal].details.transfers.forEach(function(jeArc) { %>
                                     <tr>
                                         <td>
-                                            <%= jeArc.date || "" %>
+                                            <%= jeArc._dateFormat || "" %>
                                         </td>
                                         <td>
                                             <%= jeArc.description || "" %>
