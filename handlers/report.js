@@ -20,6 +20,7 @@ const reports = {
    "income-vs-expense": require("../reports/income-vs-expense.js"),
    "balance-sheet": require("../reports/balance-sheet.js"),
    "balance-report": require("../reports/balance-report.js"),
+   "team-monthly": require("../reports/team-monthly.js"),
 };
 // "balanceReport",
 // "balanceSheet",
