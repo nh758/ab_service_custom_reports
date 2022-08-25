@@ -150,7 +150,7 @@ function calculateRCs(balances) {
    const rcs = {};
 
    (balances ?? []).forEach((bal) => {
-      const COANum = bal["COA Num"] ?? "";
+      const COANum = (bal["COA Num"] ?? "").toString();
       const rcName = bal["RC Code"];
 
       // Init RC object
@@ -207,25 +207,29 @@ function calculateRcDetail(jeArchives, fyper) {
    };
 
    (jeArchives ?? []).forEach((jeArc) => {
+      if (jeArc?.balId == null) return;
+
+      const balId = jeArc.balId.toString();
+
       // Expense (6xxx, 7xxx, 8xxx)
       if (
-         jeArc.balId.startsWith(`${fyper}-6`) ||
-         jeArc.balId.startsWith(`${fyper}-7`) ||
-         jeArc.balId.startsWith(`${fyper}-8`)
+         balId.startsWith(`${fyper}-6`) ||
+         balId.startsWith(`${fyper}-7`) ||
+         balId.startsWith(`${fyper}-8`)
       ) {
          result.expenses.push(jeArc);
       }
       // Income (4xxxx, 5xxx)
       else if (
-         jeArc.balId.startsWith(`${fyper}-4`) ||
-         jeArc.balId.startsWith(`${fyper}-5`)
+         balId.startsWith(`${fyper}-4`) ||
+         balId.startsWith(`${fyper}-5`)
       ) {
          result.income.push(jeArc);
       }
       // Transfers (91xx, 9500)
       else if (
-         jeArc.balId.startsWith(`${fyper}-91`) ||
-         jeArc.balId.startsWith(`${fyper}-95`)
+         balId.startsWith(`${fyper}-91`) ||
+         balId.startsWith(`${fyper}-95`)
       ) {
          result.transfers.push(jeArc);
       }
