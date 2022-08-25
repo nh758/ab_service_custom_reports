@@ -199,7 +199,7 @@ function calculateRCs(balances) {
    return rcs;
 }
 
-function calculateRcDetail(jeArchives, fyper) {
+function calculateRcDetail(AB, jeArchives, fyper) {
    const result = {
       expenses: [],
       income: [],
@@ -274,7 +274,7 @@ module.exports = {
       // The second part is details of RCs, date, description, amount, which are from JE Archive.
       if (rc) {
          data.rcs[rc] = data.rcs[rc] ?? {};
-         data.rcs[rc].details = calculateRcDetail(jeArchives, fyper);
+         data.rcs[rc].details = calculateRcDetail(AB, jeArchives, fyper);
       }
 
       return data;
