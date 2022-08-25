@@ -38,11 +38,11 @@
             <!-- Header -->
             <tr class="sub header">
                 <td>Responsibility Centre</td>
-                <td>Beginning Balance</td>
-                <td>Income</td>
-                <td>Expense</td>
-                <td>Transfers</td>
-                <td>Ending Balance</td>
+                <td align="right">Beginning Balance</td>
+                <td align="right">Income</td>
+                <td align="right">Expense</td>
+                <td align="right">Transfers</td>
+                <td align="right">Ending Balance</td>
             </tr>
             <!-- Data -->
             <% for(const rcCode in rcs) { %>
@@ -113,7 +113,7 @@
                         <% rcs[rcVal].details.income.forEach(function(jeArc) { %>
                             <tr>
                                 <td>
-                                    <%= jeArc.date || "" %>
+                                    <%= jeArc._dateFormat || "" %>
                                 </td>
                                 <td>
                                     <%= jeArc.description || "" %>

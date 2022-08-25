@@ -211,6 +211,9 @@ function calculateRcDetail(jeArchives, fyper) {
 
       const balId = jeArc.balId.toString();
 
+      // Date format
+      jeArc._dateFormat = AB.toDateFormat(jeArc.date, {format: "dd/mm/yyyy"});
+
       // Expense (6xxx, 7xxx, 8xxx)
       if (
          balId.startsWith(`${fyper}-6`) ||
