@@ -111,7 +111,7 @@ async function getJEarchive(AB, rc, fyper) {
       {
          key: FIELD_IDS.JE_ARCHIVE_BAL_ID,
          rule: "contains",
-         value: `${fyper}-${rc}`,
+         value: `${fyper}%${rc}`,
       },
    ];
 
