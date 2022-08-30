@@ -51,19 +51,19 @@
                         <%= rcCode || "" %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].begin || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].begin || 0) %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].income || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].income || 0) %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].expense || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].expense || 0) %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].transfers || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].transfers || 0) %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].end || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].end || 0) %>
                     </td>
                 </tr>
                 <% } %>
@@ -97,7 +97,7 @@
                             <%= jeArc.description || "" %>
                         </td>
                         <td align="right">
-                            <%= jeArc.debit || jeArc.credit %>
+                            <%= fnValueFormat(jeArc.debit || jeArc.credit) %>
                         </td>
                     </tr>
                     <% }); %>
@@ -119,7 +119,7 @@
                                     <%= jeArc.description || "" %>
                                 </td>
                                 <td align="right">
-                                    <%= jeArc.debit || jeArc.credit %>
+                                    <%= fnValueFormat(jeArc.debit || jeArc.credit) %>
                                 </td>
                             </tr>
                             <% }); %>
@@ -141,7 +141,7 @@
                                             <%= jeArc.description || "" %>
                                         </td>
                                         <td align="right">
-                                            <%= jeArc.debit || jeArc.credit %>
+                                            <%= fnValueFormat(jeArc.debit || jeArc.credit) %>
                                         </td>
                                     </tr>
                                     <% }); %>
