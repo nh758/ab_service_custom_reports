@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const utils = require("./_utils");
 
 const OBJECT_IDS = {
    FY_MONTH: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
@@ -17,7 +18,7 @@ function GetViewDataBalanceReport(rc, fyMonth) {
          en: "RC Balances",
          zh: "",
       },
-      fnValueFormat: valueFormat,
+      fnValueFormat: utils.valueFormat,
       rcType: rc,
       fyPeriod: fyMonth,
       fyOptions: [],
@@ -141,12 +142,6 @@ function GetBalances(AB, rc, fyPeriod, extraRules = []) {
          })
          .catch(bad);
    });
-}
-
-function valueFormat(number) {
-   if (number == null) return;
-
-   return number.toLocaleString("en-US", { minimumFractionDigits: 2 });
 }
 
 module.exports = {

@@ -1,6 +1,7 @@
 const fs = require("fs");
 const { forEach } = require("lodash"); // is this used?
 const path = require("path");
+const utils = require("./_utils");
 
 const OBJECT_IDS = {
    FY_MONTH: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
@@ -25,7 +26,7 @@ const ITEM_TYPES = {
 
 function GetViewDataBalanceSheet(rc, fyMonth) {
    return {
-      fnValueFormat: valueFormat,
+      fnValueFormat: utils.valueFormat,
       title: {
          en: "Balance Sheet",
          zh: "",
@@ -268,12 +269,6 @@ function GetBalances(AB, rc, fyPeriod, extraRules = []) {
          })
          .catch(bad);
    });
-}
-
-function valueFormat(number) {
-   if (number == null) return;
-
-   return number.toLocaleString("en-US", { minimumFractionDigits: 2 });
 }
 
 module.exports = {

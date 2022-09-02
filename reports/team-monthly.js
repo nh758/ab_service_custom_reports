@@ -5,6 +5,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const utils = require("./_utils");
 
 const QUERY_IDS = {
    MY_RCs: "241a977c-7748-420d-9dcb-eff53e66a43f",
@@ -250,6 +251,7 @@ module.exports = {
             en: "Team Monthly Report",
             zh: "团队月度收支报告",
          },
+         fnValueFormat: utils.valueFormat,
          rcVal: rc,
          fyPeriod: fyper,
          options: {
