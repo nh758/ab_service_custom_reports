@@ -7,6 +7,8 @@ const fs = require("fs");
 const path = require("path");
 const utils = require("./_utils");
 
+const ALL_RC_OPTION = "[My Team]";
+
 const QUERY_IDS = {
    MY_RCs: "241a977c-7748-420d-9dcb-eff53e66a43f",
 };
@@ -72,7 +74,18 @@ async function getBalances(AB, rc, fyper) {
 
    // Define condition rules
    const rules = [];
-   if (rc) {
+
+   // Pull Balances with all of my RCs
+   if (rc == ALL_RC_OPTION) {
+      const rcs = await getRC(AB);
+      rules.push({
+         key: FIELD_IDS.BALANCE_RCCode,
+         rule: "in",
+         values: rcs,
+      });
+   }
+   // Pull Balances with a specific RC
+   else if (rc) {
       rules.push({
          key: FIELD_IDS.BALANCE_RCCode,
          rule: "equals",
@@ -108,13 +121,25 @@ async function getJEarchive(AB, rc, fyper) {
    if (!rc || !fyper) return [];
 
    // Define condition rules
-   const rules = [
-      {
+   const rules = [];
+
+   // Pull JE archive with all of my RCs
+   if (rc == ALL_RC_OPTION) {
+      const rcs = await getRC(AB);
+      rules.push({
+         key: FIELD_IDS.JE_ARCHIVE_BAL_ID,
+         rule: "in",
+         values: rcs.map((rc) => `${fyper}%${rc}`),
+      });
+   }
+   // Pull JE archive with a specific RC
+   else {
+      rules.push({
          key: FIELD_IDS.JE_ARCHIVE_BAL_ID,
          rule: "contains",
          value: `${fyper}%${rc}`,
-      },
-   ];
+      });
+   }
 
    // Pull JE archive
    const objJEarchive = AB.objectByID(OBJECT_IDS.JE_ARCHIVE).model();
@@ -271,6 +296,9 @@ module.exports = {
             getJEarchive(AB, rc, fyper),
          ]);
 
+      // Add the use all RC option
+      (data.options.rc ?? []).push(ALL_RC_OPTION);
+
       data.rcs = calculateRCs(balances);
 
       // The second part is details of RCs, date, description, amount, which are from JE Archive.
@@ -289,3 +317,4 @@ module.exports = {
       );
    },
 };
+
