@@ -90,20 +90,19 @@ async function getBalances(AB, rc, fyper) {
       });
    }
    // Pull Balances with a specific RC
-   else if (rc) {
+   else if (rc != null) {
       rules.push({
          key: FIELD_IDS.BALANCE_RCCode,
          rule: "equals",
          value: rc,
       });
    }
-   if (fyper) {
-      rules.push({
-         key: FIELD_IDS.BALANCE_FYPeriod,
-         rule: "equals",
-         value: fyper,
-      });
-   }
+
+   rules.push({
+      key: FIELD_IDS.BALANCE_FYPeriod,
+      rule: "equals",
+      value: fyper,
+   });
 
    // Pull balances
    const objBalance = AB.objectByID(OBJECT_IDS.BALANCE).model();
