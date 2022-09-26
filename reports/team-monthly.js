@@ -70,35 +70,39 @@ async function getFY(AB) {
 }
 
 async function getBalances(AB, rc, fyper) {
-   if (!rc && !fyper) return [];
+   if (!fyper) return [];
 
    // Define condition rules
    const rules = [];
 
    // Pull Balances with all of my RCs
-   if (rc == ALL_RC_OPTION) {
+   if (!rc || rc == ALL_RC_OPTION) {
       const rcs = await getRC(AB);
       rules.push({
-         key: FIELD_IDS.BALANCE_RCCode,
-         rule: "in",
-         values: rcs,
+         glue: "or",
+         rules: rcs.map((rc) => {
+            return {
+               key: FIELD_IDS.BALANCE_RCCode,
+               rule: "equals",
+               value: rc,
+            };
+         }),
       });
    }
    // Pull Balances with a specific RC
-   else if (rc) {
+   else if (rc != null) {
       rules.push({
          key: FIELD_IDS.BALANCE_RCCode,
          rule: "equals",
          value: rc,
       });
    }
-   if (fyper) {
-      rules.push({
-         key: FIELD_IDS.BALANCE_FYPeriod,
-         rule: "equals",
-         value: fyper,
-      });
-   }
+
+   rules.push({
+      key: FIELD_IDS.BALANCE_FYPeriod,
+      rule: "equals",
+      value: fyper,
+   });
 
    // Pull balances
    const objBalance = AB.objectByID(OBJECT_IDS.BALANCE).model();
@@ -118,18 +122,23 @@ async function getBalances(AB, rc, fyper) {
 }
 
 async function getJEarchive(AB, rc, fyper) {
-   if (!rc || !fyper) return [];
+   if (!fyper) return [];
 
    // Define condition rules
    const rules = [];
 
    // Pull JE archive with all of my RCs
-   if (rc == ALL_RC_OPTION) {
+   if (!rc || rc == ALL_RC_OPTION) {
       const rcs = await getRC(AB);
       rules.push({
-         key: FIELD_IDS.JE_ARCHIVE_BAL_ID,
-         rule: "in",
-         values: rcs.map((rc) => `${fyper}%${rc}`),
+         glue: "or",
+         rules: rcs.map((rc) => {
+            return {
+               key: FIELD_IDS.JE_ARCHIVE_BAL_ID,
+               rule: "contains",
+               value: `${fyper}%${rc}`,
+            }
+         })
       });
    }
    // Pull JE archive with a specific RC
@@ -225,17 +234,23 @@ function calculateRCs(balances) {
    return rcs;
 }
 
-function calculateRcDetail(AB, jeArchives, fyper) {
-   const result = {
-      expenses: [],
-      income: [],
-      transfers: [],
-   };
-
+function calculateRcDetail(AB, jeArchives, fyper, rcs = {}) {
    (jeArchives ?? []).forEach((jeArc) => {
       if (jeArc?.balId == null) return;
 
       const balId = jeArc.balId.toString();
+
+      // Get RC name
+      const rc = (balId.split("-")[2] ?? "").trim();
+      if (!rc) return;
+
+      // Init RC detail object
+      rcs[rc] = rcs[rc] ?? {};
+      rcs[rc].details = rcs[rc].details ?? {
+         expenses: [],
+         income: [],
+         transfers: [],
+      };
 
       // Date format
       jeArc._dateFormat = AB.rules.toDateFormat(jeArc.date, {format: "DD/MM/yyyy"});
@@ -246,25 +261,23 @@ function calculateRcDetail(AB, jeArchives, fyper) {
          balId.startsWith(`${fyper}-7`) ||
          balId.startsWith(`${fyper}-8`)
       ) {
-         result.expenses.push(jeArc);
+         rcs[rc].details.expenses.push(jeArc);
       }
       // Income (4xxxx, 5xxx)
       else if (
          balId.startsWith(`${fyper}-4`) ||
          balId.startsWith(`${fyper}-5`)
       ) {
-         result.income.push(jeArc);
+         rcs[rc].details.income.push(jeArc);
       }
       // Transfers (91xx, 9500)
       else if (
          balId.startsWith(`${fyper}-91`) ||
          balId.startsWith(`${fyper}-95`)
       ) {
-         result.transfers.push(jeArc);
+         rcs[rc].details.transfers.push(jeArc);
       }
    });
-
-   return result;
 }
 
 module.exports = {
@@ -280,6 +293,7 @@ module.exports = {
          rcVal: rc,
          fyPeriod: fyper,
          options: {
+            rcDefault: ALL_RC_OPTION,
             rc: [],
             fyper: [],
          },
@@ -296,16 +310,10 @@ module.exports = {
             getJEarchive(AB, rc, fyper),
          ]);
 
-      // Add the use all RC option
-      (data.options.rc ?? []).push(ALL_RC_OPTION);
-
       data.rcs = calculateRCs(balances);
 
       // The second part is details of RCs, date, description, amount, which are from JE Archive.
-      if (rc) {
-         data.rcs[rc] = data.rcs[rc] ?? {};
-         data.rcs[rc].details = calculateRcDetail(AB, jeArchives, fyper);
-      }
+      calculateRcDetail(AB, jeArchives, fyper, data.rcs);
 
       return data;
    },

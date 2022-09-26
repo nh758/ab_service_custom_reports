@@ -15,6 +15,7 @@
                 RC:
             </span>
             <select class="selector" id="rcSelect" onchange="refresh()">
+                <% options.rc.unshift(options.rcDefault); %>
                 <% for(var i=0; i < options.rc.length; i++) { %>
                     <option <% if (rcVal==options.rc[i]) { %> selected <% } %> value="<%= options.rc[i] %>"><%=
                                     options.rc[i] %>
@@ -46,6 +47,7 @@
             </tr>
             <!-- Data -->
             <% for(const rcCode in rcs) { %>
+                <% if (rcCode != options.rcDefault) { %>
                 <tr>
                     <td>
                         <%= rcCode || "" %>
@@ -67,15 +69,16 @@
                     </td>
                 </tr>
                 <% } %>
+            <% } %>
         </table>
     </div>
-    <% if (rcs[rcVal]) { %>
+    <% for(const rcCode in rcs) {%>
         <div>
             <table width="100%">
                 <!-- Header -->
                 <tr class="sub header">
                     <td>
-                        <%= rcVal || "" %>
+                        <%= rcCode || "" %>
                     </td>
                     <td></td>
                     <td></td>
@@ -88,7 +91,7 @@
                     <td></td>
                     <td></td>
                 </tr>
-                <% rcs[rcVal].details.expenses.forEach(function(jeArc) { %>
+                <% rcs[rcCode].details.expenses.forEach(function(jeArc) { %>
                     <tr>
                         <td>
                             <%= jeArc._dateFormat || "" %>
@@ -110,7 +113,7 @@
                             <td></td>
                             <td></td>
                         </tr>
-                        <% rcs[rcVal].details.income.forEach(function(jeArc) { %>
+                        <% rcs[rcCode].details.income.forEach(function(jeArc) { %>
                             <tr>
                                 <td>
                                     <%= jeArc._dateFormat || "" %>
@@ -132,7 +135,7 @@
                                     <td></td>
                                     <td></td>
                                 </tr>
-                                <% rcs[rcVal].details.transfers.forEach(function(jeArc) { %>
+                                <% rcs[rcCode].details.transfers.forEach(function(jeArc) { %>
                                     <tr>
                                         <td>
                                             <%= jeArc._dateFormat || "" %>
