@@ -73,6 +73,7 @@
         </table>
     </div>
     <% for(const rcCode in rcs) {%>
+        <% if (rcs[rcCode] && rcs[rcCode].details) { %>
         <div>
             <table width="100%">
                 <!-- Header -->
@@ -151,3 +152,4 @@
             </table>
         </div>
         <% } %>
+    <% } %>

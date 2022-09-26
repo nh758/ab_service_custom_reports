@@ -36,7 +36,10 @@ async function getRC(AB) {
       AB.req
    );
 
-   return results.map((row) => row["BASE_OBJECT.RC Name"]);
+   return results
+      .map((row) => row["BASE_OBJECT.RC Name"])
+      // Remove duplicated RC
+      .filter(function (rc, pos, self) { return self.indexOf(rc) == pos; });
 }
 
 async function getFY(AB) {
@@ -325,4 +328,3 @@ module.exports = {
       );
    },
 };
-
