@@ -251,7 +251,7 @@ function calculateRcDetail(AB, jeArchives, fyper, rcs = {}) {
       const dashPos = indexOfSpecificPos(balId, "-", 2) + 1;
 
       // Pull RC name
-      const rc = balId.subString(dashPos).trim();
+      const rc = balId.substring(dashPos).trim();
       if (!rc) return;
 
       // Init RC detail object
