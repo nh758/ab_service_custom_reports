@@ -238,13 +238,20 @@ function calculateRCs(balances) {
 }
 
 function calculateRcDetail(AB, jeArchives, fyper, rcs = {}) {
-   (jeArchives ?? []).forEach((jeArc) => {
+   const indexOfSpecificPos = (string, subString, pos) => string.split(subString, pos).join(subString).length;
+
+    (jeArchives ?? []).forEach((jeArc) => {
       if (jeArc?.balId == null) return;
 
       const balId = jeArc.balId.toString();
+      if (!balId) return;
 
-      // Get RC name
-      const rc = (balId.split("-")[2] ?? "").trim();
+      // Get second dash(-) position
+      // "FY21 M10-6111-11 : Q4GZ-Donat to forward"
+      const dashPos = indexOfSpecificPos(balId, "-", 2) + 1;
+
+      // Pull RC name
+      const rc = balId.subString(dashPos).trim();
       if (!rc) return;
 
       // Init RC detail object
