@@ -12,6 +12,18 @@ const QUERY_IDS = {
    MyQXRC: "2e3e423b-fcec-4221-9a9c-7a670fbba65e",
 };
 
+async function getData(req, objectID, cond = {}) {
+   return new Promise((resolve, reject) => {
+      req.serviceRequest(
+         "appbuilder.model-get",
+         { objectID, cond },
+         (err, results) => {
+            err ? reject(err) : resolve(results?.data ?? []);
+         }
+      );
+   });
+}
+
 function GetViewDataBalanceReport(rc, fyMonth) {
    return {
       title: {
@@ -33,23 +45,8 @@ function getDefaultCond(AB) {
    };
 }
 
-async function includeScopes(AB, object, cond) {
-   cond = cond || {};
-
-   await object.includeScopes(cond, getDefaultCond(AB), AB.req);
-
-   return cond;
-}
-
-async function GetRC(AB, queryId) {
-   const queryRC = AB.queryByID(queryId);
-   if (queryRC == null) return [];
-
-   const cond = {};
-
-   await includeScopes(AB, queryRC, cond);
-
-   const list = await queryRC.model().findAll(cond, getDefaultCond(AB), AB.req);
+async function GetRC(req, queryId) {
+   const list = await getData(req, queryId);
 
    const rcNames = (list || [])
       .map((rc) => rc["BASE_OBJECT.RC Name"])
@@ -58,10 +55,7 @@ async function GetRC(AB, queryId) {
    return rcNames;
 }
 
-async function GetFYMonths(AB) {
-   const objFYMonth = AB.objectByID(OBJECT_IDS.FY_MONTH);
-   if (objFYMonth == null) return [];
-
+async function GetFYMonths(req) {
    const cond = {
       where: {
          glue: "and",
@@ -83,18 +77,12 @@ async function GetFYMonths(AB) {
       limit: 12,
    };
 
-   await includeScopes(AB, objFYMonth, cond);
-
-   return (
-      await objFYMonth.model().findAll(cond, getDefaultCond(AB), AB.req)
-   ).map((item) => item["FY Per"]);
+   return (await getData(req, OBJECT_IDS.FY_MONTH, cond)).map(
+      (item) => item["FY Per"]
+   );
 }
 
-async function GetBalances(AB, rc, fyPeriod, extraRules = []) {
-   const objBalance = AB.objectByID(OBJECT_IDS.BALANCE);
-
-   if (objBalance == null || fyPeriod == null) return [];
-
+async function GetBalances(req, rc, fyPeriod, extraRules = []) {
    const cond = {
       where: {
          glue: "and",
@@ -125,15 +113,13 @@ async function GetBalances(AB, rc, fyPeriod, extraRules = []) {
       cond.where.rules.push(r);
    });
 
-   await includeScopes(AB, objBalance, cond);
-
-   return await objBalance.model().findAll(cond, getDefaultCond(AB), AB.req);
+   return await getData(req, OBJECT_IDS.BALANCE, cond);
 }
 
 module.exports = {
    // GET: /template/balanceReport
    // balanceReport: (req, res) => {
-   prepareData: async (AB, { rc, fyper }) => {
+   prepareData: async (AB, { rc, fyper }, req) => {
       let viewData = GetViewDataBalanceReport(rc, fyper);
 
       /**
@@ -146,11 +132,11 @@ module.exports = {
       const rcHash = {};
 
       // Pull FY month list
-      viewData.fyOptions = await GetFYMonths(AB);
+      viewData.fyOptions = await GetFYMonths(req);
 
       // Check QX Role of the user
       const RCs = await GetRC(
-         AB,
+         req,
          viewData.rcType == "qx" // this is the rc from GET
             ? QUERY_IDS.MyQXRC
             : QUERY_IDS.MyTeamRC
@@ -171,7 +157,7 @@ module.exports = {
       ];
 
       const balances = await GetBalances(
-         AB,
+         req,
          null,
          viewData.fyPeriod || viewData.fyOptions[0],
          rules
