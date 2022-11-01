@@ -63,7 +63,7 @@ module.exports = {
 
          const report = reports[key];
          if (!report) cb(new Error("No report template found"));
-         const data = await report.prepareData(AB, req.param("data"));
+         const data = await report.prepareData(AB, req.param("data"), req);
 
          data["languageCode"] = languageCode;
 
