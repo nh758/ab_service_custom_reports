@@ -12,18 +12,6 @@ const QUERY_IDS = {
    MyQXRC: "2e3e423b-fcec-4221-9a9c-7a670fbba65e",
 };
 
-async function getData(req, objectID, cond = {}) {
-   return new Promise((resolve, reject) => {
-      req.serviceRequest(
-         "appbuilder.model-get",
-         { objectID, cond },
-         (err, results) => {
-            err ? reject(err) : resolve(results?.data ?? []);
-         }
-      );
-   });
-}
-
 function GetViewDataBalanceReport(rc, fyMonth) {
    return {
       title: {
@@ -38,15 +26,8 @@ function GetViewDataBalanceReport(rc, fyMonth) {
    };
 }
 
-function getDefaultCond(AB) {
-   return {
-      languageCode: AB.req.languageCode(),
-      username: AB.id,
-   };
-}
-
 async function GetRC(req, queryId) {
-   const list = await getData(req, queryId);
+   const list = await utils.getData(req, queryId);
 
    const rcNames = (list || [])
       .map((rc) => rc["BASE_OBJECT.RC Name"])
@@ -77,7 +58,7 @@ async function GetFYMonths(req) {
       limit: 12,
    };
 
-   return (await getData(req, OBJECT_IDS.FY_MONTH, cond)).map(
+   return (await utils.getData(req, OBJECT_IDS.FY_MONTH, cond)).map(
       (item) => item["FY Per"]
    );
 }
@@ -113,7 +94,7 @@ async function GetBalances(req, rc, fyPeriod, extraRules = []) {
       cond.where.rules.push(r);
    });
 
-   return await getData(req, OBJECT_IDS.BALANCE, cond);
+   return await utils.getData(req, OBJECT_IDS.BALANCE, cond);
 }
 
 module.exports = {
