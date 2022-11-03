@@ -5,4 +5,16 @@ module.exports = {
 
       return number.toLocaleString("en-US", { minimumFractionDigits: 2 });
    },
+
+   getData: async (req, objectID, cond = {}) => {
+      return new Promise((resolve, reject) => {
+         req.serviceRequest(
+            "appbuilder.model-get",
+            { objectID, cond },
+            (err, results) => {
+               err ? reject(err) : resolve(results?.data ?? []);
+            }
+         );
+      });
+   }
 };

@@ -28,13 +28,8 @@ const FIELD_IDS = {
    JE_ARCHIVE_DATE: "acc290cb-6f5f-4e64-9d88-7ee047462ca7",
 };
 
-async function getRC(AB) {
-   const queryMyRCs = AB.queryByID(QUERY_IDS.MY_RCs).model();
-   const results = await queryMyRCs.findAll(
-      { populate: false },
-      { username: AB.id },
-      AB.req
-   );
+async function getRC(req) {
+   const results = await utils.getData(req, QUERY_IDS.MY_RCs, { populate: false });
 
    return results
       .map((row) => row["BASE_OBJECT.RC Name"])
@@ -42,37 +37,34 @@ async function getRC(AB) {
       .filter(function (rc, pos, self) { return self.indexOf(rc) == pos; });
 }
 
-async function getFY(AB) {
-   const objFyMonth = AB.objectByID(OBJECT_IDS.FY_MONTH).model();
-   const results = await objFyMonth.findAll(
-      {
-         where: {
-            glue: "and",
-            rules: [
-               {
-                  key: FIELD_IDS.FY_MONTH_STATUS,
-                  rule: "equals",
-                  value: "1592549786113",
-               },
-            ],
-         },
-         populate: false,
-         sort: [
+async function getFY(req) {
+   const cond = {
+      where: {
+         glue: "and",
+         rules: [
             {
-               key: FIELD_IDS.FY_MONTH_END,
-               dir: "DESC",
+               key: FIELD_IDS.FY_MONTH_STATUS,
+               rule: "equals",
+               value: "1592549786113",
             },
          ],
-         limit: 12,
       },
-      { username: AB.id },
-      AB.req
-   );
+      populate: false,
+      sort: [
+         {
+            key: FIELD_IDS.FY_MONTH_END,
+            dir: "DESC",
+         },
+      ],
+      limit: 12,
+   };
+
+   const results = await utils.getData(req, OBJECT_IDS.FY_MONTH, cond);
 
    return results.map((item) => item["FY Per"]);
 }
 
-async function getBalances(AB, rc, fyper) {
+async function getBalances(req, rc, fyper) {
    if (!fyper) return [];
 
    // Define condition rules
@@ -80,7 +72,7 @@ async function getBalances(AB, rc, fyper) {
 
    // Pull Balances with all of my RCs
    if (!rc || rc == ALL_RC_OPTION) {
-      const rcs = await getRC(AB);
+      const rcs = await getRC(req);
       rules.push({
          glue: "or",
          rules: rcs.map((rc) => {
@@ -108,23 +100,18 @@ async function getBalances(AB, rc, fyper) {
    });
 
    // Pull balances
-   const objBalance = AB.objectByID(OBJECT_IDS.BALANCE).model();
-   const results = await objBalance.findAll(
-      {
-         where: {
-            glue: "and",
-            rules: rules,
-         },
-         populate: false,
+   const results = await utils.getData(req, OBJECT_IDS.BALANCE, {
+      where: {
+         glue: "and",
+         rules: rules,
       },
-      { username: AB.id },
-      AB.req
-   );
+      populate: false,
+   });
 
    return results;
 }
 
-async function getJEarchive(AB, rc, fyper) {
+async function getJEarchive(req, rc, fyper) {
    if (!fyper) return [];
 
    // Define condition rules
@@ -132,7 +119,7 @@ async function getJEarchive(AB, rc, fyper) {
 
    // Pull JE archive with all of my RCs
    if (!rc || rc == ALL_RC_OPTION) {
-      const rcs = await getRC(AB);
+      const rcs = await getRC(req);
       rules.push({
          glue: "or",
          rules: rcs.map((rc) => {
@@ -154,8 +141,7 @@ async function getJEarchive(AB, rc, fyper) {
    }
 
    // Pull JE archive
-   const objJEarchive = AB.objectByID(OBJECT_IDS.JE_ARCHIVE).model();
-   const results = await objJEarchive.findAll(
+   const results = await utils.getData(req, OBJECT_IDS.JE_ARCHIVE,
       {
          where: {
             glue: "and",
@@ -169,8 +155,8 @@ async function getJEarchive(AB, rc, fyper) {
          ],
          populate: false,
       },
-      { username: AB.id },
-      AB.req
+      { username: req.id },
+      req.req
    );
 
    return results.map((item) => {
@@ -292,7 +278,7 @@ function calculateRcDetail(AB, jeArchives, fyper, rcs = {}) {
 
 module.exports = {
    // GET: /report/team-monthly
-   prepareData: async (AB, { rc, fyper }) => {
+   prepareData: async (AB, { rc, fyper }, req) => {
       const data = {
          current_path: __dirname,
          title: {
@@ -314,10 +300,10 @@ module.exports = {
       let jeArchives = [];
       [data.options.rc, data.options.fyper, balances, jeArchives] =
          await Promise.all([
-            getRC(AB),
-            getFY(AB),
-            getBalances(AB, rc, fyper),
-            getJEarchive(AB, rc, fyper),
+            getRC(req),
+            getFY(req),
+            getBalances(req, rc, fyper),
+            getJEarchive(req, rc, fyper),
          ]);
 
       data.rcs = calculateRCs(balances);
