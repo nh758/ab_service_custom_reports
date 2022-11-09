@@ -221,7 +221,9 @@ function calculateRCs(balances) {
 
       // the Ending/Running Balance has been calculated out in the Process of Approval Batch
       if (COANum == "3991") {
-         rcs[rcName].end = parseFloat(bal["Running Balance"] ?? 0);
+         rcs[rcName].end += parseFloat(bal["Running Balance"] ?? 0);
+      } else if (COANum == "3500") {
+         rcs[rcName].end += parseFloat(bal["Starting Balance"] ?? 0);
       }
    });
 
@@ -231,7 +233,7 @@ function calculateRCs(balances) {
 function calculateRcDetail(AB, jeArchives, fyper, rcs = {}) {
    const indexOfSpecificPos = (string, subString, pos) => string.split(subString, pos).join(subString).length;
 
-    (jeArchives ?? []).forEach((jeArc) => {
+   (jeArchives ?? []).forEach((jeArc) => {
       if (jeArc?.balId == null) return;
 
       const balId = jeArc.balId.toString();
@@ -254,7 +256,7 @@ function calculateRcDetail(AB, jeArchives, fyper, rcs = {}) {
       };
 
       // Date format
-      jeArc._dateFormat = AB.rules.toDateFormat(jeArc.date, {format: "DD/MM/yyyy"});
+      jeArc._dateFormat = AB.rules.toDateFormat(jeArc.date, { format: "DD/MM/yyyy" });
 
       // Expense (6xxx, 7xxx, 8xxx)
       if (
