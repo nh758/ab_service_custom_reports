@@ -218,6 +218,11 @@ function calculateRCs(balances) {
          rcs[rcName].transfers -=
             parseFloat(bal["Debit"] ?? 0) - parseFloat(bal["Credit"] ?? 0);
       }
+
+      // the Ending/Running Balance has been calculated out in the Process of Approval Batch
+      if (COANum == "3991") {
+         rcs[rcName].end = parseFloat(bal["Running Balance"] ?? 0);
+      }
    });
 
    return rcs;
