@@ -135,8 +135,15 @@ module.exports = {
       let fiscalMonthsArray = await fiscalMonthObj // .modelAPI()
          .find({
             where: {
-               glue: "and",
+               glue: "or",
                rules: [
+                  // Active
+                  {
+                     key: "Status",
+                     rule: "equals",
+                     value: "1592549785939",
+                  },
+                  // Closed
                   {
                      key: "Status",
                      rule: "equals",
@@ -155,6 +162,15 @@ module.exports = {
          });
 
       data.fyper = fyper || fiscalMonthsArray[0]["FY Per"];
+
+      // Set default FY period when .fyper value is invalid
+      if (
+         !(fiscalMonthsArray || []).filter((fp) => fp["FY Per"] == data.fyper)
+            .length
+      ) {
+         data.fyper = fiscalMonthsArray[0]["FY Per"];
+      }
+
       let fyperOptions = [];
       let i = 0;
       let currIndex = 0;
