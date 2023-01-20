@@ -61,12 +61,17 @@ function GetFYMonths(AB) {
          .findAll(
             {
                where: {
-                  glue: "and",
+                  glue: "or",
                   rules: [
                      {
                         key: "Status",
                         rule: "equals",
                         value: "1592549786113",
+                     },
+                     {
+                        key: "Status",
+                        rule: "equals",
+                        value: "1592549785939",
                      },
                   ],
                },
