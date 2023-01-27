@@ -39,12 +39,17 @@ async function GetRC(req, queryId) {
 async function GetFYMonths(req) {
    const cond = {
       where: {
-         glue: "and",
+         glue: "or",
          rules: [
             {
                key: "Status",
                rule: "equals",
                value: "1592549786113",
+            },
+            {
+               key: "Status",
+               rule: "equals",
+               value: "1592549785939",
             },
          ],
       },
