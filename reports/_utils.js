@@ -15,7 +15,7 @@ module.exports = {
          return results?.data ?? [];
       } catch (err) {
          req.notify.developer(err, {
-            contect: "Custom reports utils.getData > appbuilder.model-get",
+            context: "Custom reports utils.getData > appbuilder.model-get",
             jobData: { objectID, cond },
          });
          return [];
