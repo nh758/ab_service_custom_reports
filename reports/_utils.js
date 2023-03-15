@@ -7,14 +7,18 @@ module.exports = {
    },
 
    getData: async (req, objectID, cond = {}) => {
-      return new Promise((resolve, reject) => {
-         req.serviceRequest(
-            "appbuilder.model-get",
-            { objectID, cond },
-            (err, results) => {
-               err ? reject(err) : resolve(results?.data ?? []);
-            }
-         );
-      });
-   }
+      try {
+         const results = await req.serviceRequest("appbuilder.model-get", {
+            objectID,
+            cond,
+         });
+         return results?.data ?? [];
+      } catch (err) {
+         req.notify.developer(err, {
+            contect: "Custom reports utils.getData > appbuilder.model-get",
+            jobData: { objectID, cond },
+         });
+         return [];
+      }
+   },
 };
