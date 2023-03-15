@@ -1,4 +1,9 @@
 <%- include(current_path + '/templates/_stylesheets' ) %>
+    <style type="text/css">
+        body {
+            overflow: auto;
+        }
+    </style>
     <script type="text/javascript">
         function refresh() {
             const rcVal = document.getElementById("rcSelect").value;
@@ -15,6 +20,7 @@
                 RC:
             </span>
             <select class="selector" id="rcSelect" onchange="refresh()">
+                <% options.rc.unshift(options.rcDefault); %>
                 <% for(var i=0; i < options.rc.length; i++) { %>
                     <option <% if (rcVal==options.rc[i]) { %> selected <% } %> value="<%= options.rc[i] %>"><%=
                                     options.rc[i] %>
@@ -38,44 +44,47 @@
             <!-- Header -->
             <tr class="sub header">
                 <td>Responsibility Centre</td>
-                <td>Beginning Balance</td>
-                <td>Income</td>
-                <td>Expense</td>
-                <td>Transfers</td>
-                <td>Ending Balance</td>
+                <td align="right">Beginning Balance</td>
+                <td align="right">Income</td>
+                <td align="right">Expense</td>
+                <td align="right">Transfers</td>
+                <td align="right">Ending Balance</td>
             </tr>
             <!-- Data -->
             <% for(const rcCode in rcs) { %>
+                <% if (rcCode != options.rcDefault) { %>
                 <tr>
                     <td>
                         <%= rcCode || "" %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].begin || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].begin || 0) %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].income || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].income || 0) %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].expense || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].expense || 0) %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].transfers || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].transfers || 0) %>
                     </td>
                     <td align="right">
-                        <%= rcs[rcCode].end || 0 %>
+                        <%= fnValueFormat(rcs[rcCode].end || 0) %>
                     </td>
                 </tr>
                 <% } %>
+            <% } %>
         </table>
     </div>
-    <% if (rcs[rcVal]) { %>
+    <% for(const rcCode in rcs) {%>
+        <% if (rcs[rcCode] && rcs[rcCode].details) { %>
         <div>
             <table width="100%">
                 <!-- Header -->
                 <tr class="sub header">
                     <td>
-                        <%= rcVal || "" %>
+                        <%= rcCode || "" %>
                     </td>
                     <td></td>
                     <td></td>
@@ -88,16 +97,16 @@
                     <td></td>
                     <td></td>
                 </tr>
-                <% rcs[rcVal].details.expenses.forEach(function(jeArc) { %>
+                <% rcs[rcCode].details.expenses.forEach(function(jeArc) { %>
                     <tr>
                         <td>
-                            <%= jeArc.date || "" %>
+                            <%= jeArc._dateFormat || "" %>
                         </td>
                         <td>
                             <%= jeArc.description || "" %>
                         </td>
                         <td align="right">
-                            <%= jeArc.debit || jeArc.credit %>
+                            <%= fnValueFormat(jeArc.debit || jeArc.credit) %>
                         </td>
                     </tr>
                     <% }); %>
@@ -110,16 +119,16 @@
                             <td></td>
                             <td></td>
                         </tr>
-                        <% rcs[rcVal].details.income.forEach(function(jeArc) { %>
+                        <% rcs[rcCode].details.income.forEach(function(jeArc) { %>
                             <tr>
                                 <td>
-                                    <%= jeArc.date || "" %>
+                                    <%= jeArc._dateFormat || "" %>
                                 </td>
                                 <td>
                                     <%= jeArc.description || "" %>
                                 </td>
                                 <td align="right">
-                                    <%= jeArc.debit || jeArc.credit %>
+                                    <%= fnValueFormat(jeArc.debit || jeArc.credit) %>
                                 </td>
                             </tr>
                             <% }); %>
@@ -132,19 +141,20 @@
                                     <td></td>
                                     <td></td>
                                 </tr>
-                                <% rcs[rcVal].details.transfers.forEach(function(jeArc) { %>
+                                <% rcs[rcCode].details.transfers.forEach(function(jeArc) { %>
                                     <tr>
                                         <td>
-                                            <%= jeArc.date || "" %>
+                                            <%= jeArc._dateFormat || "" %>
                                         </td>
                                         <td>
                                             <%= jeArc.description || "" %>
                                         </td>
                                         <td align="right">
-                                            <%= jeArc.debit || jeArc.credit %>
+                                            <%= fnValueFormat(jeArc.debit || jeArc.credit) %>
                                         </td>
                                     </tr>
                                     <% }); %>
             </table>
         </div>
         <% } %>
+    <% } %>
