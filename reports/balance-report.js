@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const utils = require("./_utils");
 
 const OBJECT_IDS = {
    FY_MONTH: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
@@ -17,7 +18,7 @@ function GetViewDataBalanceReport(rc, fyMonth) {
          en: "RC Balances",
          zh: "",
       },
-      fnValueFormat: valueFormat,
+      fnValueFormat: utils.valueFormat,
       rcType: rc,
       fyPeriod: fyMonth,
       fyOptions: [],
@@ -25,92 +26,59 @@ function GetViewDataBalanceReport(rc, fyMonth) {
    };
 }
 
-function GetRC(AB, queryId) {
-   const queryRC = AB.queryByID(queryId).model();
+async function GetRC(req, queryId) {
+   const list = await utils.getData(req, queryId);
 
-   if (queryRC == null) return Promise.resolve([]);
+   const rcNames = (list || [])
+      .map((rc) => rc["BASE_OBJECT.RC Name"])
+      .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
-   return new Promise((next, bad) => {
-      queryRC
-         .findAll({}, { username: AB.id }, AB.req)
-         .then((list) => {
-            let rcNames = (list || []).map((rc) => rc["BASE_OBJECT.RC Name"]);
-
-            rcNames = rcNames.sort((a, b) =>
-               a.toLowerCase().localeCompare(b.toLowerCase())
-            );
-
-            next(rcNames);
-         })
-         .catch(bad);
-   });
+   return rcNames;
 }
 
-function GetFYMonths(AB) {
-   // const objFYMonth = ABSystemObject.getApplication().objects(
-   //    (o) => o.id == OBJECT_IDS.FY_MONTH
-   // )[0];
-   const objFYMonth = AB.objectByID(OBJECT_IDS.FY_MONTH).model();
-
-   if (objFYMonth == null) {
-      return Promise.resolve([]);
-   }
-
-   return new Promise((next, bad) => {
-      objFYMonth
-         .findAll(
+async function GetFYMonths(req) {
+   const cond = {
+      where: {
+         glue: "or",
+         rules: [
             {
-               where: {
-                  glue: "or",
-                  rules: [
-                     {
-                        key: "Status",
-                        rule: "equals",
-                        value: "1592549786113",
-                     },
-                     {
-                        key: "Status",
-                        rule: "equals",
-                        value: "1592549785939",
-                     },
-                  ],
-               },
-               populate: false,
-               sort: [
-                  {
-                     key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-                     dir: "DESC",
-                  },
-               ],
-               limit: 12,
-            },
-            { username: AB.id },
-            AB.req
-         )
-         .then((list) => {
-            next(list.map((item) => item["FY Per"]));
-         })
-         .catch(bad);
-   });
+              key: "Status",
+              rule: "equals",
+              value: "1592549786113", 
+              },
+              {   
+                key: "Status",
+                rule: "equals",
+                value: "1592549785939",
+              },             
+            ],
+         },
+      populate: false,
+      sort: [
+         {
+            key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
+            dir: "DESC",
+         },
+      ],
+      limit: 12,
+   };
+
+   return (await utils.getData(req, OBJECT_IDS.FY_MONTH, cond)).map(
+      (item) => item["FY Per"]
+   );
 }
 
-function GetBalances(AB, rc, fyPeriod, extraRules = []) {
-   // const objBalance = ABSystemObject.getApplication().objects(
-   //    (o) => o.id == OBJECT_IDS.BALANCE
-   // )[0];
-   const objBalance = AB.objectByID(OBJECT_IDS.BALANCE).model();
-
-   if (objBalance == null || fyPeriod == null) {
-      return Promise.resolve([]);
-   }
-
-   let cond = {
-      glue: "and",
-      rules: [],
+async function GetBalances(req, rc, fyPeriod, extraRules = []) {
+   const cond = {
+      where: {
+         glue: "and",
+         rules: [],
+      },
+      populate: true,
    };
 
    if (rc) {
-      cond.rules.push({
+      cond.where.rules.push({
          key: "RC Code",
          rule: "equals",
          value: rc,
@@ -118,7 +86,7 @@ function GetBalances(AB, rc, fyPeriod, extraRules = []) {
    }
 
    if (fyPeriod) {
-      cond.rules.push({
+      cond.where.rules.push({
          key: "FY Period",
          rule: "equals",
          value: fyPeriod,
@@ -128,36 +96,16 @@ function GetBalances(AB, rc, fyPeriod, extraRules = []) {
    (extraRules || []).forEach((r) => {
       if (!r) return;
 
-      cond.rules.push(r);
+      cond.where.rules.push(r);
    });
 
-   return new Promise((next, bad) => {
-      objBalance
-         .findAll(
-            {
-               where: cond,
-               populate: true,
-            },
-            { username: AB.id },
-            AB.req
-         )
-         .then((list) => {
-            next(list);
-         })
-         .catch(bad);
-   });
-}
-
-function valueFormat(number) {
-   if (number == null) return;
-
-   return number.toLocaleString("en-US", { minimumFractionDigits: 2 });
+   return await utils.getData(req, OBJECT_IDS.BALANCE, cond);
 }
 
 module.exports = {
    // GET: /template/balanceReport
    // balanceReport: (req, res) => {
-   prepareData: async (AB, { rc, fyper }) => {
+   prepareData: async (AB, { rc, fyper }, req) => {
       let viewData = GetViewDataBalanceReport(rc, fyper);
 
       /**
@@ -167,94 +115,63 @@ module.exports = {
        *    ...
        * }
        */
-      let rcHash = {};
+      const rcHash = {};
 
-      return (
-         Promise.resolve()
-            // Pull FY month list
-            .then(
-               () =>
-                  new Promise((next, err) => {
-                     GetFYMonths(AB)
-                        .then((list) => {
-                           viewData.fyOptions = list;
-                           next();
-                        })
-                        .catch(err);
-                  })
-            )
-            // Check QX Role of the user
-            .then(
-               () =>
-                  new Promise((next, err) => {
-                     GetRC(
-                        AB,
-                        viewData.rcType == "qx" // this is the rc from GET
-                           ? QUERY_IDS.MyQXRC
-                           : QUERY_IDS.MyTeamRC
-                     )
-                        .then((list) => {
-                           next(list || []);
-                        })
-                        .catch(err);
-                  })
-            )
-            // Pull Balance
-            .then(
-               (RCs) =>
-                  new Promise((next, err) => {
-                     let rules = [
-                        {
-                           key: "RC Code",
-                           rule: "in",
-                           value: RCs,
-                        },
-                        {
-                           key: "COA Num",
-                           rule: "in",
-                           value: [3991, 3500],
-                        },
-                     ];
+      // Pull FY month list
+      viewData.fyOptions = await GetFYMonths(req);
 
-                     GetBalances(
-                        AB,
-                        null,
-                        viewData.fyPeriod || viewData.fyOptions[0],
-                        rules
-                     )
-                        .then((list) => {
-                           next(list);
-                        })
-                        .catch(err);
-                  })
-            )
-            // Render UI
-            .then((balances) => {
-               // Calculate Sum
-               (balances || []).forEach((gl) => {
-                  rcHash[gl["RC Code"]] =
-                     rcHash[gl["RC Code"]] == null ? 0 : rcHash[gl["RC Code"]];
-
-                  rcHash[gl["RC Code"]] += gl["Running Balance"] || 0;
-               });
-
-               // Convert to View Data
-               Object.keys(rcHash).forEach((rcCode) => {
-                  viewData.items.push({
-                     title: rcCode,
-                     value: rcHash[rcCode],
-                  });
-               });
-
-               // Sort
-               viewData.items = viewData.items.sort((a, b) =>
-                  a.title.toLowerCase().localeCompare(b.title.toLowerCase())
-               );
-            })
-            .then(() => {
-               return viewData;
-            })
+      // Check QX Role of the user
+      const RCs = await GetRC(
+         req,
+         viewData.rcType == "qx" // this is the rc from GET
+            ? QUERY_IDS.MyQXRC
+            : QUERY_IDS.MyTeamRC
       );
+
+      // Pull Balance
+      const rules = [
+         {
+            key: "RC Code",
+            rule: "in",
+            value: RCs,
+         },
+         {
+            key: "COA Num",
+            rule: "in",
+            value: [3991, 3500],
+         },
+      ];
+
+      const balances = await GetBalances(
+         req,
+         null,
+         viewData.fyPeriod || viewData.fyOptions[0],
+         rules
+      );
+
+      // Render UI
+      // Calculate Sum
+      (balances || []).forEach((gl) => {
+         rcHash[gl["RC Code"]] =
+            rcHash[gl["RC Code"]] == null ? 0 : rcHash[gl["RC Code"]];
+
+         rcHash[gl["RC Code"]] += gl["Running Balance"] || 0;
+      });
+
+      // Convert to View Data
+      Object.keys(rcHash).forEach((rcCode) => {
+         viewData.items.push({
+            title: rcCode,
+            value: rcHash[rcCode],
+         });
+      });
+
+      // Sort
+      viewData.items = viewData.items.sort((a, b) =>
+         a.title.toLowerCase().localeCompare(b.title.toLowerCase())
+      );
+
+      return viewData;
    },
    template: () => {
       return fs.readFileSync(
