@@ -6,7 +6,7 @@
    "author": "Coding Monkey",
    "license": "MIT",
    "dependencies": {
-      "ab-utils": "npm:@digiserve/ab-utils@^1.3.1",
+      "@digiserve/ab-utils": "^1.3.1",
       "cote": "^1.0.2",
       "ejs": "^3.1.7",
       "knex": "^0.95.15",
