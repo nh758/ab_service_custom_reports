@@ -2,7 +2,7 @@
 // custom_reports
 // A cool micro service.
 //
-const AB = require("digiserve/ab-utils");
+const AB = require("@digiserve/ab-utils");
 
 var controller = AB.controller("custom_reports");
 // controller.afterStartup((req, cb)=>{ return cb(/* err */) });
