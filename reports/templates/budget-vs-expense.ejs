@@ -171,12 +171,16 @@
                      }
                %>
                <%= addCommas(sumTotalActEx) %> </td>
-            <td><% let sumPercent = (sumGroupTotalExpense / sumTotalAmount *100).toFixed(2)
-                   if(isNaN(sumPercent)){
-                      sumPercent = 0
-                   }else{
-                      sumPercent
-                   }
+            <td><% let sumPercent = (sumGroupTotalExpense / sumTotalAmount *100).toFixed(2) 
+                   let checkFinite = isFinite(sumPercent);
+                     if(isNaN(sumPercent)){
+                        sumPercent = 0
+                     }else if(checkFinite === false){
+                        sumPercent = 0
+                     }else{
+                        sumPercent
+                     }               
+                     
                 %>
                 <%= addCommas(sumPercent)  %> %
            </td>
@@ -260,11 +264,15 @@
                    </td>
                    <td>
                       <% let BudgetExpense = (sumExpense / newData.projectBud["Income Total Amount"] * 100).toFixed(2)
+                         let checkFinite2 = isFinite(BudgetExpense);
                            if(isNaN(BudgetExpense)){
+                              BudgetExpense = 0
+                           }else if(checkFinite2 === false){
                               BudgetExpense = 0
                            }else{
                               BudgetExpense
                            }
+                        
                       %>
                       <%= addCommas(BudgetExpense)  %>%   
                
