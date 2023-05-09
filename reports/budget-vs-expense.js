@@ -109,9 +109,14 @@ module.exports = {
       });
 
       //----------------Set Default Ministry Team ---------------//
-      const TeamsData = await projectObj.findAll({
-         populate: true,
+      const TeamsData = await projectObj.find({
+         where: {
+            glue: "and",
+            rules: [],
+         },
+         populate: false,
       });
+
       function defaultMTlist() {
          let showTList;
          for (i = 0; i < TeamsData.length; i++) {
