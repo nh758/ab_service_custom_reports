@@ -9,7 +9,7 @@ const path = require("path");
 module.exports = {
    // GET: /report/local-income-expense
    // get the local and expense income and calculate the sums
-   prepareData: async (AB, { rc, fyper }) => {
+   prepareData: async (AB, { rc, fyper }, req) => {
       // get our passed params
       rc = rc ? rc : undefined;
       fyper = fyper ? fyper : undefined;
@@ -172,7 +172,7 @@ module.exports = {
                //    rules: [],
                // },
             },
-            { username: AB.id },
+            { username: req._user.username },
             AB.req
          ),
          fiscalMonthObj // .modelAPI()
@@ -197,7 +197,7 @@ module.exports = {
                   ],
                   limit: 12,
                },
-               { username: AB.id },
+               { username: req._user.username },
                AB.req
             ),
       ]);
@@ -277,7 +277,7 @@ module.exports = {
             },
             populate: false,
          },
-         { username: AB.id },
+         { username: req._user.username },
          AB.req
       );
 
