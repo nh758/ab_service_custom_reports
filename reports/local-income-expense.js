@@ -210,7 +210,8 @@ module.exports = {
 
             let rcOptions = [];
             rcs.forEach((rcData) => {
-               rcOptions.push(rcData["BASE_OBJECT.RC Name"]);
+               const rcName = rcData["BASE_OBJECT.RC Name"];
+               if (rcOptions.indexOf(rcName) < 0) rcOptions.push(rcName);
             });
 
             data.rcOptions = rcOptions.sort(function (a, b) {
