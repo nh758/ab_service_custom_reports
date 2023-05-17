@@ -9,8 +9,7 @@ module.exports = {
          entity: "21c32a39-335f-473e-8ce9-395d265b7a6a",
          siteFile: "4a9d89c9-f4eb-41af-91e4-909eff389f3e",
       };
-      // Load Models
-      const enitityModel = AB.objectByID(ids.entity).model();
+
       // Load Data
       const [[session], [entity]] = await Promise.all([
          utils.getData(req, ids.session, {
@@ -26,8 +25,9 @@ module.exports = {
             },
             populate: true,
          }),
-         enitityModel.findAll(),
+         utils.getData(req, ids.entity),
       ]);
+
       const [[logo]] = await Promise.all([
          utils.getData(req, ids.siteFile, {
             where: {
