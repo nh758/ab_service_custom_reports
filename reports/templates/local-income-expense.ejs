@@ -1,26 +1,55 @@
 <%- include('/app/reports/templates/stylesheets') %>
+<script type="text/javascript">
+      function getMonthVal(){
+         let monthVal = document.getElementById("monthSelect").value;
+         let yearVal = document.getElementById("yearSelect").value;
+         location.href = '/report/local-income-expense?fyYear='+yearVal+'&fyMonth='+monthVal;
+      }
 
+</script>
    <% if(typeof error=="undefined" ) { %>
       <center>
          <h1>
             <%= title[languageCode] %>
          </h1>
          <h2>
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="rcSelect"
-               onchange="location.href = '/report/local-income-expense?rc='+this.value;">
-               <% for(var i=0; i < rcOptions.length; i++) { %>
-                  <option <% if (rc==rcOptions[i]) { %> selected <% } %> value="<%= rcOptions[i] %>"><%= rcOptions[i] %>
+            Ministry Team :
+            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="teamsSelect"
+               onchange="location.href = '/report/local-income-expense?team='+this.value;">
+               <option value=""></option>   
+               <% for(var i=0; i < teamOptions.length; i++) { %>
+                  <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%= teamOptions[i] %>
                   </option>
                   <% } %>
             </select>
-            <span style="color: lightgray; font-weight: normal;">
-               <%= fiscalPeriodstart %>-
-            </span>
-            <select style="font-size: 24px; color: lightgray; border: 1px solid #CCC;"
-               onchange="location.href = '/report/local-income-expense?rc=<%= rc %>&fyper='+this.value;">
-               <% for(var i=0; i < fiscalPeriodOptions.length; i++) { %>
-                  <option <% if (fiscalPeriodOptions[i].selected) { %> selected <% } %> value="<%=
-                           fiscalPeriodOptions[i].id %>"><%= fiscalPeriodOptions[i].label %>
+            RC :
+            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="rcSelect"
+            onchange="location.href = '/report/local-income-expense?rc='+this.value;">    
+            <option value=""></option>        
+            <option value="all">All</option>          
+            <% for(var i=0; i < rcOptions.length; i++) { %>
+               <option <% if (rc==rcOptions[i]) { %> selected <% } %> value="<%= rcOptions[i] %>"><%= rcOptions[i] %>
+               </option>
+               <% } %>
+            </select>
+            Year :
+            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="yearSelect"
+            onchange="location.href = '/report/local-income-expense?fyYear='+this.value;">       
+               <option value=""></option>                
+               <% for(var i=0; i < yearOptions.length; i++) { %>
+               <option <% if (fyYear==yearOptions[i]) { %> selected <% } %> value="<%= yearOptions[i] %>"><%= yearOptions[i] %>
+               </option>
+               <% } %>
+            </select>
+            </select>
+
+            Month :
+            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="monthSelect"
+               onchange="getMonthVal()">   
+               <option value=""></option>              
+               <% for(var i=0; i < monthOptions.length; i++) { %>
+                  <option <% if (fyMonth==monthOptions[i]) { %> selected <% } %> value="<%= monthOptions[i] %>"><%=
+                     monthOptions[i] %>
                   </option>
                   <% } %>
             </select>
@@ -79,3 +108,5 @@
       <% } else if (typeof error=="string" ) { %>
          <%= error %>
             <% } %>
+
+       

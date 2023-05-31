@@ -3,21 +3,27 @@
  *
  *
  */
+const { reject } = require("async");
 const fs = require("fs");
 const path = require("path");
 
 module.exports = {
    // GET: /report/local-income-expense
    // get the local and expense income and calculate the sums
-   prepareData: async (AB, { rc, fyper }, req) => {
+   prepareData: async (AB, { rc, fyYear, team, fyMonth }, req) => {
       // get our passed params
       rc = rc ? rc : undefined;
-      fyper = fyper ? fyper : undefined;
+      fyYear = fyYear ? fyYear : undefined;
+      team = team ? team : undefined;
+      fyMonth = fyMonth ? fyMonth : undefined;
 
       const ids = {
          myRCsQueryId: "241a977c-7748-420d-9dcb-eff53e66a43f",
          balanceObjId: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
          fiscalMonthObjId: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
+         teamsObjId: "138ff828-4579-412b-8b5b-98542d7aa152",
+         yearObjId: "6c398e8f-ddde-4e26-b142-353de5b16397",
+         rcObjectID: "c3aae079-d36d-489f-ae1e-a6289536cb1a",
       };
       // Our data object
       var data = {
@@ -158,48 +164,136 @@ module.exports = {
             return 0;
          }
       }
+      function GetMonthList() {
+         var array = [
+            "01",
+            "02",
+            "03",
+            "04",
+            "05",
+            "06",
+            "07",
+            "08",
+            "09",
+            "10",
+            "11",
+            "12",
+         ];
 
+         array.sort();
+         return array;
+      }
       const myRCs = AB.queryByID(ids.myRCsQueryId).model();
       const balanceObj = AB.objectByID(ids.balanceObjId).model();
       const fiscalMonthObj = AB.objectByID(ids.fiscalMonthObjId).model();
+      const teamsObj = AB.objectByID(ids.teamsObjId).model();
+      const yearObj = AB.objectByID(ids.yearObjId).model();
+      const RcObj = AB.objectByID(ids.rcObjectID).model();
 
-      const [rcs, fiscalMonthsArray] = await Promise.all([
-         // return myRCs
-         myRCs.findAll(
-            {
-               // where: {
-               //    glue: "and",
-               //    rules: [],
-               // },
-            },
-            { username: req._user.username },
-            AB.req
-         ),
-         fiscalMonthObj // .modelAPI()
-            .findAll(
+      const [teamsArray, rcs, yearArray, fiscalMonthsArray] = await Promise.all(
+         [
+            // return teams
+            teamsObj.findAll(
                {
-                  where: {
-                     glue: "and",
-                     rules: [
-                        {
-                           key: "Status",
-                           rule: "equals",
-                           value: "1592549786113",
-                        },
-                     ],
-                  },
                   populate: false,
-                  sort: [
-                     {
-                        key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-                        dir: "DESC",
-                     },
-                  ],
-                  limit: 12,
                },
                { username: req._user.username },
                AB.req
             ),
+
+            // return myRCs
+            myRCs.findAll(
+               {
+                  // where: {
+                  //    glue: "and",
+                  //    rules: [],
+                  // },
+               },
+               { username: req._user.username },
+               AB.req
+            ),
+            // return year
+            yearObj.findAll(
+               {
+                  populate: false,
+               },
+               { username: req._user.username },
+               AB.req
+            ),
+            fiscalMonthObj // .modelAPI()
+               .findAll(
+                  {
+                     where: {
+                        glue: "and",
+                        rules: [
+                           {
+                              key: "Status",
+                              rule: "equals",
+                              value: "1592549786113",
+                           },
+                        ],
+                     },
+                     populate: false,
+                     sort: [
+                        {
+                           key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
+                           dir: "DESC",
+                        },
+                     ],
+                     limit: 12,
+                  },
+                  { username: req._user.username },
+                  AB.req
+               ),
+         ]
+      );
+
+      [data.team, data.fyYear, data.fyMonth] = await Promise.all([
+         new Promise((resolve, reject) => {
+            if (!teamsArray || !teamsArray.length) {
+               reject(new Error("Ministry Team not found"));
+            }
+
+            let teamOptions = [];
+            teamsArray.forEach((teamsData) => {
+               teamOptions.push(teamsData["Name"]);
+            });
+
+            data.teamOptions = teamOptions.sort(function (a, b) {
+               return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
+
+            if (!team) {
+               team = data.teamOptions[-1];
+            }
+            resolve(team);
+         }),
+         new Promise((resolve, reject) => {
+            if (!yearArray || !yearArray.length) {
+               reject(new Error("Year not found"));
+            }
+
+            let yearOptions = [];
+            yearArray.forEach((yearData) => {
+               yearOptions.push(yearData["FYear"]);
+            });
+
+            data.yearOptions = yearOptions.sort(function (a, b) {
+               return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
+
+            if (!fyYear) {
+               fyYear = data.yearOptions[-1];
+            }
+            resolve(fyYear);
+         }),
+         new Promise((resolve, reject) => {
+            if (!fiscalMonthsArray || !fiscalMonthsArray.length) {
+               reject(new Error("Month not found"));
+            }
+
+            resolve(fyMonth);
+         }),
       ]);
 
       [data.rc, data.fiscalPeriodstart] = await Promise.all([
@@ -219,16 +313,17 @@ module.exports = {
             });
 
             if (!rc) {
-               rc = data.rcOptions[0];
+               rc = data.rcOptions[-1];
             }
             resolve(rc);
          }),
+
          new Promise((resolve, reject) => {
             if (!fiscalMonthsArray || !fiscalMonthsArray.length) {
                reject(new Error("Fiscal Months not found"));
             }
 
-            data.fyper = fyper || fiscalMonthsArray[0]["FY Per"];
+            data.year = year || fiscalMonthsArray[0]["FY Per"];
             let fiscalPeriodOptions = [];
             let i = 0;
             let currIndex = 0;
@@ -238,7 +333,7 @@ module.exports = {
                var year = dateObj.getUTCFullYear();
                var prettyDate = year + "/" + (month > 9 ? month : "0" + month);
                var option = { id: fp["FY Per"], label: prettyDate };
-               if (fyper == fp["FY Per"]) {
+               if (year == fp["FY Per"]) {
                   option.selected = true;
                   currIndex = i;
                }
@@ -259,23 +354,66 @@ module.exports = {
          }),
       ]);
 
+      const GetRcObject = await RcObj.findAll({
+         populate: false,
+      });
+
+      const where = {
+         glue: "and",
+         rules: [],
+      };
+
+      if (team) {
+         let teamListObjs = [];
+         for (let i = 0; i < GetRcObject.length; i++) {
+            if (GetRcObject[i]["Responsibility Center406"] === team) {
+               teamListObjs.push(GetRcObject[i]["RC Name"]);
+            }
+         }
+         where.rules.push({
+            key: "RC Code",
+            rule: "equals",
+            value: teamListObjs,
+         });
+      }
+
+      if (rc) {
+         if (rc === "all") {
+         } else {
+            where.rules.push({
+               key: "RC Code",
+               rule: "equals",
+               value: rc,
+            });
+         }
+      }
+
+      if (fyYear) {
+         where.rules.push({
+            key: "FY Period",
+            rule: "contains",
+            value: fyYear,
+         });
+      }
+
+      if (fyMonth) {
+         let CurrentYear = new Date().getFullYear();
+
+         if (fyYear === undefined) {
+            fyYear = CurrentYear;
+         }
+
+         const monthJoin = fyYear + " M" + fyMonth;
+         where.rules.push({
+            key: "FY Period",
+            rule: "contains",
+            value: monthJoin,
+         });
+      }
+
       let records = await balanceObj.findAll(
          {
-            where: {
-               glue: "and",
-               rules: [
-                  {
-                     key: "RC Code",
-                     rule: "equals",
-                     value: rc,
-                  },
-                  {
-                     key: "FY Period",
-                     rule: "equals",
-                     value: data.fyper,
-                  },
-               ],
-            },
+            where: where,
             populate: false,
          },
          { username: req._user.username },
@@ -305,6 +443,8 @@ module.exports = {
          // there is no local income, so so no expenses are covered
          data.localPercentage = 0;
       }
+
+      data.monthOptions = GetMonthList(AB);
 
       return data;
    },
