@@ -3,7 +3,7 @@
       function getMonthVal(){
          let monthVal = document.getElementById("monthSelect").value;
          let yearVal = document.getElementById("yearSelect").value;
-         location.href = '/report/local-income-expense?fyYear='+yearVal+'&fyMonth='+monthVal;
+         location.href = `/report/local-income-expense?fyYear=${yearVal}&fyMonth=${monthVal}`;
       }
 
 </script>
@@ -15,7 +15,7 @@
          <h2>
             Ministry Team :
             <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="teamsSelect"
-               onchange="location.href = '/report/local-income-expense?team='+this.value;">
+               onchange="location.href = `/report/local-income-expense?team=${this.value}`">
                <option value=""></option>   
                <% for(var i=0; i < teamOptions.length; i++) { %>
                   <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%= teamOptions[i] %>
@@ -24,7 +24,7 @@
             </select>
             RC :
             <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="rcSelect"
-            onchange="location.href = '/report/local-income-expense?rc='+this.value;">    
+            onchange="location.href = `/report/local-income-expense?rc=${this.value}`">    
             <option value=""></option>        
             <option value="all">All</option>          
             <% for(var i=0; i < rcOptions.length; i++) { %>
@@ -34,7 +34,7 @@
             </select>
             Year :
             <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="yearSelect"
-            onchange="location.href = '/report/local-income-expense?fyYear='+this.value;">       
+            onchange="location.href = `/report/local-income-expense?fyYear=${this.value}`">       
                <option value=""></option>                
                <% for(var i=0; i < yearOptions.length; i++) { %>
                <option <% if (fyYear==yearOptions[i]) { %> selected <% } %> value="<%= yearOptions[i] %>"><%= yearOptions[i] %>
