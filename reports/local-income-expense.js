@@ -3,7 +3,7 @@
  *
  *
  */
-const { reject } = require("async");
+
 const fs = require("fs");
 const path = require("path");
 
@@ -264,7 +264,7 @@ module.exports = {
             });
 
             if (!team) {
-               team = data.teamOptions[-1];
+               team = data.teamOptions[null];
             }
             resolve(team);
          }),
@@ -283,7 +283,7 @@ module.exports = {
             });
 
             if (!fyYear) {
-               fyYear = data.yearOptions[-1];
+               fyYear = data.yearOptions[null];
             }
             resolve(fyYear);
          }),
@@ -312,7 +312,7 @@ module.exports = {
             });
 
             if (!rc) {
-               rc = data.rcOptions[-1];
+               rc = data.rcOptions[null];
             }
             resolve(rc);
          }),
@@ -377,8 +377,7 @@ module.exports = {
       }
 
       if (rc) {
-         if (rc === "all") {
-         } else {
+         if (rc !== "all") {
             where.rules.push({
                key: "RC Code",
                rule: "equals",
@@ -396,13 +395,12 @@ module.exports = {
       }
 
       if (fyMonth) {
-         let CurrentYear = new Date().getFullYear();
-
          if (fyYear === undefined) {
+            let CurrentYear = new Date().getFullYear();
             fyYear = CurrentYear;
          }
 
-         const monthJoin = fyYear + " M" + fyMonth;
+         const monthJoin = `${fyYear} M${fyMonth}`;
          where.rules.push({
             key: "FY Period",
             rule: "contains",
