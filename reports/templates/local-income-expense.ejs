@@ -1,26 +1,57 @@
 <%- include('/app/reports/templates/stylesheets') %>
+<script type="text/javascript">
+      function refresh() {
+         const teamVal = document.getElementById("teamSelect").value,
+               rcVal = document.getElementById("rcSelect").value,
+               yearVal = document.getElementById("yearSelect").value,
+               monthVal = document.getElementById("monthSelect").value;
 
+         location.href = `/report/local-income-expense?team=${teamVal}&rc=${rcVal}&fyYear=${yearVal}&fyMonth=${monthVal}`;
+      }
+
+</script>
    <% if(typeof error=="undefined" ) { %>
       <center>
          <h1>
             <%= title[languageCode] %>
          </h1>
          <h2>
+            Ministry Team :
+            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="teamSelect"
+               onchange="refresh()">
+               <option value="">[Select]</option>
+               <% for(var i=0; i < teamOptions.length; i++) { %>
+                  <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%= teamOptions[i] %>
+                  </option>
+                  <% } %>
+            </select>
+            RC :
             <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="rcSelect"
-               onchange="location.href = '/report/local-income-expense?rc='+this.value;">
+               onchange="refresh()">
+               <option value="">[All]</option>
                <% for(var i=0; i < rcOptions.length; i++) { %>
                   <option <% if (rc==rcOptions[i]) { %> selected <% } %> value="<%= rcOptions[i] %>"><%= rcOptions[i] %>
                   </option>
                   <% } %>
             </select>
-            <span style="color: lightgray; font-weight: normal;">
-               <%= fiscalPeriodstart %>-
-            </span>
-            <select style="font-size: 24px; color: lightgray; border: 1px solid #CCC;"
-               onchange="location.href = '/report/local-income-expense?rc=<%= rc %>&fyper='+this.value;">
-               <% for(var i=0; i < fiscalPeriodOptions.length; i++) { %>
-                  <option <% if (fiscalPeriodOptions[i].selected) { %> selected <% } %> value="<%=
-                           fiscalPeriodOptions[i].id %>"><%= fiscalPeriodOptions[i].label %>
+            Year :
+            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="yearSelect"
+               onchange="refresh()">
+               <option value="">[Current]</option>
+               <% for(var i=0; i < yearOptions.length; i++) { %>
+                  <option <% if (fyYear==yearOptions[i]) { %> selected <% } %> value="<%= yearOptions[i] %>"><%= yearOptions[i] %>
+                  </option>
+                  <% } %>
+            </select>
+            </select>
+
+            Month :
+            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="monthSelect"
+               onchange="refresh()">
+               <option value="">[Select]</option>
+               <% for(var i=0; i < monthOptions.length; i++) { %>
+                  <option <% if (fyMonth==monthOptions[i]) { %> selected <% } %> value="<%= monthOptions[i] %>"><%=
+                     monthOptions[i] %>
                   </option>
                   <% } %>
             </select>
