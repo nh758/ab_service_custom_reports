@@ -67,8 +67,8 @@ module.exports = {
       const data = {
          number: session["Session ID"],
          date: new Date(session["Session Date"]),
-         providers: session.Providers,
-         clientsPresent: session["Clients Present"],
+         providers: session.Providers__relation,
+         clientsPresent: session.ClientsPresent__relation,
          otherParticipants: session["Other Participants"],
          sessionNote,
          entity,
