@@ -76,7 +76,7 @@
                                  <% if(categories[i].type=="Expenses" ) { %>00-99<% } %>)</span>
                      </td>
                      <td align="right">
-                        <%= categories[i].sub[x].sum %>
+                        <%= (categories[i].sub[x].sum).toFixed(2) %>
                      </td>
                   </tr>
                   <% } %>
