@@ -277,7 +277,8 @@ module.exports = {
       }
 
       if (fyMonth) {
-         const monthJoin = `${fyYear ?? new Date().getFullYear()} M${fyMonth}`;
+         const year = fyYear || new Date().getFullYear();
+         const monthJoin = `FY${year.toString().slice(-2)} M${fyMonth}`;
          where.rules.push({
             key: "FY Period",
             rule: "contains",
@@ -312,7 +313,7 @@ module.exports = {
       // if either number is zero, percentage won't calculate correctly
       if (expensesSum == 0) {
          // 100 of expenses are covered by local
-         data.localPercentage = 100;
+         data.localPercentage = 0;
       } else if (localIncomeSum == 0) {
          // there is no local income, so so no expenses are covered
          data.localPercentage = 0;
