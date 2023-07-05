@@ -1,88 +1,71 @@
+/**
+ *Budget VS Expense Report
+ *
+ *
+ */
 const fs = require("fs");
-const { result, head, startsWith } = require("lodash");
 const path = require("path");
 
 const OBJECT_IDS = {
    FY_MONTH: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
+   myTeamsQueryId: "62a0c464-1e67-4cfb-9592-a7c5ed9db45c",
+   myRCsQueryId: "241a977c-7748-420d-9dcb-eff53e66a43f",
+   myRCsTeamFieldId: "ae4ace97-f70c-4132-8fa0-1a0b1a9c7859",
+   yearObjId: "6c398e8f-ddde-4e26-b142-353de5b16397",
+   GLTransactQueryId: "cb59abf7-3f00-4e05-92f9-7f2db8672274",
+   objectByID: "839ac470-8f77-420c-9a30-aeaf0a9f509c",
 };
 
-function valueFormat(number) {
-   if (number == null) return;
+function getMonthList() {
+   var array = [
+      "01",
+      "02",
+      "03",
+      "04",
+      "05",
+      "06",
+      "07",
+      "08",
+      "09",
+      "10",
+      "11",
+      "12",
+   ];
 
-   return number.toLocaleString("en-US", { minimumFractionDigits: 0 });
-}
-
-function GetFYMonths(AB) {
-   const objFYMonth = AB.objectByID(OBJECT_IDS.FY_MONTH).model();
-
-   if (objFYMonth == null) {
-      console.error("null value");
-      return Promise.resolve([]);
-   }
-
-   return new Promise((next, bad) => {
-      objFYMonth
-
-         .findAll({
-            where: {
-               glue: "or",
-               rules: [
-                  {
-                     key: "Status",
-                     rule: "equals",
-                     value: "1592549786113",
-                  },
-                  {
-                     key: "Status",
-                     rule: "equals",
-                     value: "1592549785939",
-                  },
-                  {
-                     key: "Status",
-                     rule: "equals",
-                     value: "1592549785894",
-                  },
-               ],
-            },
-            populate: false,
-            sort: [
-               {
-                  key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-                  dir: "DESC",
-               },
-            ],
-            limit: 12,
-         })
-         .then((list) => {
-            next(list.map((item) => item["FY Per"]));
-         })
-         .catch(bad);
-   });
-}
-function valueFormat(number) {
-   if (number == null) return;
-
-   return number.toLocaleString("en-US", { minimumFractionDigits: 0 });
+   // array.sort();
+   return array;
 }
 
 module.exports = {
-   prepareData: async (AB, { fyPeriod, ministryValue }) => {
-      const result = {};
+   prepareData: async (AB, { team, rc, fyYear, fyMonth }, req) => {
+      const data = {
+         title: {
+            en: "Budget vs. Actual",
+            zh: "预算 VS 实际的",
+         },
+      };
+      // get our passed params
+      data.team = team ? team : undefined;
+      data.rc = rc ? rc : undefined;
+      data.fyYear = fyYear ? fyYear : undefined;
+      data.fyMonth = fyMonth ? fyMonth : undefined;
 
-      const projectObj = AB.objectByID(
-         "839ac470-8f77-420c-9a30-aeaf0a9f509c"
-      ).model();
+      const myTeams = AB.queryByID(OBJECT_IDS.myTeamsQueryId).model();
+      const myRCs = AB.queryByID(OBJECT_IDS.myRCsQueryId).model();
+      const yearObj = AB.objectByID(OBJECT_IDS.yearObjId).model();
+      const GLTransactObj = AB.queryByID(OBJECT_IDS.GLTransactQueryId).model();
+      const projectObj = AB.objectByID(OBJECT_IDS.objectByID).model();
 
-      const GLTransactObj = AB.queryByID(
-         "cb59abf7-3f00-4e05-92f9-7f2db8672274"
-      ).model();
+      function sort(a, b) {
+         return (a ?? "").toLowerCase().localeCompare((b ?? "").toLowerCase());
+      }
 
-      const cond = {
+      const w = {
          glue: "or",
          rules: [],
       };
-
-      cond.rules.push(
+      // Start with COA Num 7xxx,8xxx
+      w.rules.push(
          {
             key: "69133f41-7c12-44af-bd59-426a723f5e1e",
             rule: "begins_with",
@@ -95,100 +78,38 @@ module.exports = {
          }
       );
 
-      if (fyPeriod) {
-         cond.rules.push({
+      if (fyMonth) {
+         const year = fyYear || new Date().getFullYear();
+         const monthJoin = `FY${year.toString().slice(-2)} M${fyMonth}`;
+         w.rules.push({
             key: "549ab4ac-f436-461d-9777-505d6dc1d4f7",
-            rule: "equals",
-            value: fyPeriod,
+            rule: "contains",
+            value: monthJoin,
          });
       }
 
       const GLTransactData = await GLTransactObj.findAll({
-         where: cond,
+         where: w,
          populate: true,
       });
 
-      //----------------Set Default Ministry Team ---------------//
-      const TeamsData = await projectObj.find({
-         populate: false,
-      });
-
-      function defaultMTlist() {
-         let showTList;
-         for (i = 0; i < TeamsData.length; i++) {
-            showTList = TeamsData[i]["Ministry Team"];
-            return showTList;
-         }
-      }
-
-      //------------Function Get Ministry Team Select List-------------//
-      function getMTLists() {
-         return new Promise((next, bad) => {
-            projectObj
-               .findAll({
-                  populate: true,
-               })
-               .then((list) => {
-                  const uniqList = [];
-                  (list ?? []).forEach((item) => {
-                     if (
-                        !uniqList.filter(
-                           (i) => i["Ministry Team"] == item["Ministry Team"]
-                        ).length
-                     )
-                        uniqList.push(item);
-                  });
-                  next(uniqList);
-               })
-               .catch(bad);
-         });
-      }
-
-      function getRCLists() {
-         const where = {
-            glue: "and",
-            rules: [],
-         };
-
-         if (ministryValue) {
-            where.rules.push({
-               key: "Ministry Team",
-               rule: "equals",
-               value: ministryValue,
-            });
-         }
-
-         return new Promise((next, bad) => {
-            projectObj
-               .findAll({
-                  where: where,
-                  populate: true,
-               })
-               .then((list) => {
-                  next(list);
-               })
-               .catch(bad);
-         });
-      }
-
-      const where = {
+      const cond = {
          glue: "and",
          rules: [],
       };
 
-      if (
-         ministryValue == "" ||
-         ministryValue == null ||
-         ministryValue == undefined
-      ) {
-         ministryValue = defaultMTlist();
-      }
-
-      if (ministryValue) {
-         where.rules.push({
+      if (team) {
+         cond.rules.push({
             key: "Ministry Team",
             rule: "equals",
-            value: ministryValue,
+            value: team,
+         });
+      }
+      if (rc) {
+         cond.rules.push({
+            key: "RC",
+            rule: "equals",
+            value: rc,
          });
       }
 
@@ -204,7 +125,7 @@ module.exports = {
          return item[keyIndex];
       });
 
-      where.rules.push({
+      cond.rules.push({
          key: "3bb80108-b29b-4141-a84e-646bcbab98bf",
          rule: "in",
          value: GLTransactData.filter(function (item) {
@@ -253,28 +174,22 @@ module.exports = {
          "02 : Q1BJ-2013Bangladesh MT",
       ];
 
-      where.rules.push({
+      cond.rules.push({
          key: "RC",
          rule: "not_in",
          value: FilterOutRC,
       });
 
       const projectData = await projectObj.findAll({
-         where: where,
-         populate: true,
+         where: cond,
+         populate: false,
       });
 
-      function objectLength(obj) {
-         var result = 0;
-         for (var prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-               result++;
-            }
-         }
-         return result;
-      }
+      // Sort
+      projectData.sort((a, b) =>
+         a.RC.toLowerCase().localeCompare(b.RC.toLowerCase())
+      );
 
-      //------------Function Sum Total Budget Amount-------------//
       function sumTotalAmount() {
          let sum = 0;
 
@@ -287,7 +202,7 @@ module.exports = {
          });
          return sum;
       }
-      //------------Function Sum total Group Expense Amount------------//
+
       function sumGroupTotalExpense() {
          let sum = 0;
          projectData.forEach((e) => {
@@ -315,7 +230,7 @@ module.exports = {
          });
          return sum;
       }
-      //--------------Function Sum Total Group Budget Amount--------------//
+
       function sumGroupTotalbudget() {
          let sum = 0;
          projectData.forEach((e) => {
@@ -342,18 +257,17 @@ module.exports = {
          return sum;
       }
 
-      //------------Function Get Team Name-------------//
       function getTeamLists() {
          const where = {
             glue: "and",
             rules: [],
          };
 
-         if (ministryValue) {
+         if (team) {
             where.rules.push({
                key: "Ministry Team",
                rule: "equals",
-               value: ministryValue,
+               value: team,
             });
          }
 
@@ -441,54 +355,82 @@ module.exports = {
                .catch(bad);
          });
       }
-      function showTeamSumTotal() {
-         for (i = 0; i < projectData.length; i++) {
-            const showTeamList = projectData[i]["RC"];
+      // Load Options
+      const [teamsArray, rcs, yearArray] = await Promise.all([
+         // Return teams
+         myTeams.findAll(
+            {
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         ),
+         // Return myRCs
+         myRCs.findAll(
+            {
+               where: {
+                  glue: "and",
+                  rules: team
+                     ? [
+                          {
+                             key: OBJECT_IDS.myRCsTeamFieldId,
+                             rule: "equals",
+                             value: team,
+                          },
+                       ]
+                     : [],
+               },
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         ),
+         //Return year
+         yearObj.findAll(
+            {
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         ),
+      ]);
 
-            let SumTeamTotal = 0;
-            Object.keys(projectData).forEach((QX) => {
-               var Team_lists = projectData[QX]["RC"];
+      data.teamOptions = (teamsArray ?? [])
+         .map((t) => t["BASE_OBJECT.Name"])
+         // Remove duplicated Team
+         .filter(function (team, ft, tl) {
+            return tl.indexOf(team) == ft;
+         })
+         .sort(sort);
 
-               if (showTeamList == Team_lists) {
-                  SumTeamTotal += projectData[QX]["Income Total Amount"];
-               } else {
-                  if (showTeamList != Team_lists) {
-                     SumTeamTotal += projectData[QX]["Income Total Amount"];
-                  }
-               }
-            });
-            return SumTeamTotal;
-         }
-      }
+      data.showMTHead = team ? team : "ALL";
 
-      const data = {
-         data: result,
-      };
+      data.rcOptions = (rcs ?? [])
+         .map((t) => t["BASE_OBJECT.RC Name"])
+         // Remove duplicated RC
+         .filter(function (rc, pos, self) {
+            return self.indexOf(rc) == pos;
+         })
+         .sort(sort);
+
+      data.yearOptions = (yearArray ?? []).map((t) => t["FYear"]).sort(sort);
+
+      data.monthOptions = getMonthList(AB);
 
       data.projectData = projectData;
       data.GLTransactData = GLTransactData;
+      data.sumGroupTotalExpense = sumGroupTotalExpense()
+         .toFixed(2)
+         .replace(/\.0+$/, ""); // If decimal equal .00 will not display
+      data.sumPercentTotal = (
+         (sumGroupTotalExpense() / sumGroupTotalbudget()) *
+         100
+      )
+         .toFixed(2)
+         .replace(/\.0+$/, ""); // If decimal equal .00 will not display
       data.filterGLTransactData = filterGLTransactData;
-      data.fnValueFormat = valueFormat;
-      data.showTeamSumTotal = showTeamSumTotal();
-      data.objectLength = objectLength(projectData);
-      data.fyPeriod = fyPeriod;
-      if (
-         ministryValue == "" ||
-         ministryValue == null ||
-         ministryValue == undefined
-      ) {
-         data.showMTHead = defaultMTlist();
-      } else {
-         data.showMTHead = ministryValue;
-      }
-      data.getRCLists = await getRCLists();
       data.sumTotalAmount = sumTotalAmount();
-      data.sumGroupTotalExpense = sumGroupTotalExpense();
-      data.sumGroupTotalbudget = sumGroupTotalbudget();
       data.getTeamLists = await getTeamLists();
-      data.getMTLists = await getMTLists();
-      data.fyOptions = await GetFYMonths(AB);
-
       return data;
    },
 
