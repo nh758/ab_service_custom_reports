@@ -78,19 +78,20 @@ module.exports = {
          }
       );
 
-      if (fyMonth) {
-         const year = fyYear || new Date().getFullYear();
-         const monthJoin = `FY${year.toString().slice(-2)} M${fyMonth}`;
-         w.rules.push({
-            key: "549ab4ac-f436-461d-9777-505d6dc1d4f7",
-            rule: "contains",
-            value: monthJoin,
-         });
-      }
+      const years = fyYear || new Date().getFullYear();
+      const monthJoins = fyMonth
+         ? `FY${years.toString().slice(-2)} M${fyMonth}`
+         : `FY${years.toString().slice(-2)}`;
+
+      w.rules.push({
+         key: "549ab4ac-f436-461d-9777-505d6dc1d4f7",
+         rule: "contains",
+         value: monthJoins,
+      });
 
       const GLTransactData = await GLTransactObj.findAll({
          where: w,
-         populate: true,
+         populate: false,
       });
 
       const cond = {
@@ -342,7 +343,7 @@ module.exports = {
             projectObj
                .findAll({
                   where: where,
-                  populate: true,
+                  populate: false,
                })
                .then((list) => {
                   const uniqList = [];
