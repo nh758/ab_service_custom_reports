@@ -60,33 +60,37 @@ module.exports = {
          return (a ?? "").toLowerCase().localeCompare((b ?? "").toLowerCase());
       }
 
-      const w = {
-         glue: "or",
-         rules: [],
-      };
-      // Start with COA Num 7xxx,8xxx
-      w.rules.push(
-         {
-            key: "69133f41-7c12-44af-bd59-426a723f5e1e",
-            rule: "begins_with",
-            value: "7",
-         },
-         {
-            key: "69133f41-7c12-44af-bd59-426a723f5e1e",
-            rule: "begins_with",
-            value: "8",
-         }
-      );
-
       const years = fyYear || new Date().getFullYear();
       const monthJoins = fyMonth
          ? `FY${years.toString().slice(-2)} M${fyMonth}`
          : `FY${years.toString().slice(-2)}`;
 
+      const w = {
+         glue: "and",
+         rules: [
+            {
+               key: "549ab4ac-f436-461d-9777-505d6dc1d4f7",
+               rule: "contains",
+               value: monthJoins,
+            },
+         ],
+      };
+
       w.rules.push({
-         key: "549ab4ac-f436-461d-9777-505d6dc1d4f7",
-         rule: "contains",
-         value: monthJoins,
+         // Start with COA Num 7xxx,8xxx
+         glue: "or",
+         rules: [
+            {
+               key: "69133f41-7c12-44af-bd59-426a723f5e1e",
+               rule: "begins_with",
+               value: "7",
+            },
+            {
+               key: "69133f41-7c12-44af-bd59-426a723f5e1e",
+               rule: "begins_with",
+               value: "8",
+            },
+         ],
       });
 
       const GLTransactData = await GLTransactObj.findAll({
