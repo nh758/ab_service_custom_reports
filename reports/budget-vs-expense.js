@@ -61,9 +61,10 @@ module.exports = {
       }
 
       const years = fyYear || new Date().getFullYear();
+
       const monthJoins = fyMonth
          ? `FY${years.toString().slice(-2)} M${fyMonth}`
-         : `FY${years.toString().slice(-2)}`;
+         : `FY${years.toString().slice(-2)} M01`;
 
       const w = {
          glue: "and",
@@ -95,7 +96,13 @@ module.exports = {
 
       const GLTransactData = await GLTransactObj.findAll({
          where: w,
-         populate: false,
+         populate: [
+            "FY Period",
+            "COA Num",
+            "Project Number",
+            "BASE_OBJECT.Debit",
+            "BASE_OBJECT.Credit",
+         ],
       });
 
       const cond = {
@@ -187,7 +194,7 @@ module.exports = {
 
       const projectData = await projectObj.findAll({
          where: cond,
-         populate: false,
+         populate: ["Income Total Amount"],
       });
 
       // Sort
