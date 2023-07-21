@@ -141,8 +141,8 @@ module.exports = {
       data.fyMonth = fyMonth ? fyMonth : undefined;
 
       function accountInCategory(account, category) {
-         const accountDigits = account.toString().split("");
-         const categoryDigits = category.toString().split("");
+         const accountDigits = account?.toString().split("") ?? [];
+         const categoryDigits = category?.toString().split("") ?? [];
          let match = true;
          categoryDigits.forEach((digit, i) => {
             if (digit !== accountDigits[i]) {
@@ -278,7 +278,7 @@ module.exports = {
 
       if (fyMonth) {
          const year = fyYear || new Date().getFullYear();
-         const monthJoin = `FY${year.toString().slice(-2)} M${fyMonth}`;
+         const monthJoin = `FY${year?.toString().slice(-2)} M${fyMonth}`;
          where.rules.push({
             key: "FY Period",
             rule: "contains",
@@ -286,14 +286,17 @@ module.exports = {
          });
       }
 
-      let records = await balanceObj.findAll(
-         {
-            where: where,
-            populate: false,
-         },
-         { username: req._user.username },
-         AB.req
-      );
+      let records = [];
+      if (data.team && where?.rules?.length) {
+         records = await balanceObj.findAll(
+            {
+               where: where,
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         );
+      }
 
       data.categories.forEach((cat) => {
          let catSum = 0;
