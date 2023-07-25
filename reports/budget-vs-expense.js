@@ -27,6 +27,8 @@ const FIELD_IDS = {
    EXPENSE_RC: "232d33bd-40e9-4ba6-8718-9718cbc95f5b",
    EXPENSE_YEAR: "549ab4ac-f436-461d-9777-505d6dc1d4f7",
    EXPENSE_ACCOUNT: "69133f41-7c12-44af-bd59-426a723f5e1e",
+   EXPENSE_CREDIT: "513a31b1-1f1c-487d-b65d-f87764d8aa38",
+   EXPENSE_DEBIT: "c73c6da9-fa40-40c0-98aa-a045b2d870dc",
 
    PROJECT_NUMBER: "3bb80108-b29b-4141-a84e-646bcbab98bf",
    PROJECT_NAME: "3adf1639-fbaf-44f9-9249-d2800506642c",
@@ -141,7 +143,22 @@ async function getActualExpense(modelTeamJEArchive, team, rc, year) {
                   value: "8",
                },
             ],
-         }
+         },
+         {
+            glue: "or",
+            rules: [
+               {
+                  key: FIELD_IDS.EXPENSE_CREDIT,
+                  rule: "greater",
+                  value: 0,
+               },
+               {
+                  key: FIELD_IDS.EXPENSE_DEBIT,
+                  rule: "greater",
+                  value: 0,
+               },
+            ],
+         },
       ],
    };
 
