@@ -1,301 +1,141 @@
-<link
-href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
-rel="stylesheet"
-integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
-crossorigin="anonymous"
-/>
-<script
-src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
-integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
-crossorigin="anonymous"
-></script>
-<style>
+<%- include(current_path + '/templates/_stylesheets' ) %>
+   <style>
       body {
-      overflow: visible;      
-   }
+         overflow: auto;
+      }
 
-</style>
-<script type="text/javascript">
-   function refresh() {
-      const teamVal = document.getElementById("teamSelect").value,
+      select.option {
+         font-size: 24px;
+         color: gray;
+         border: 1px solid #CCC;
+      }
+   </style>
+
+   <script type="text/javascript">
+      function refresh() {
+         const teamVal = document.getElementById("teamSelect").value,
             rcVal = document.getElementById("rcSelect").value,
-            yearVal = document.getElementById("yearSelect").value,
-            monthVal = document.getElementById("monthSelect").value;
+            yearVal = document.getElementById("yearSelect").value;
 
-      location.href = `/report/budget-vs-expense?team=${teamVal}&rc=${rcVal}&fyYear=${yearVal}&fyMonth=${monthVal}`;
-   }
+         location.href = `/report/budget-vs-expense?team=${teamVal}&rc=${rcVal}&fyYear=${yearVal}`;
+      }
+   </script>
+   <center>
+      <h1>
+         <%= title[languageCode] %>
+      </h1>
+      <h2>
+         Ministry Team :
+         <select id="teamSelect" onchange="refresh()" class="option">
+            <option value="">[Select]</option>
+            <% for(i=0; i < teamOptions.length; i++) { %>
+               <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%=
+                           teamOptions[i] %>
+               </option>
+               <% } %>
+         </select>
+         RC :
+         <select id="rcSelect" onchange="refresh()" class="option">
+            <option value="">[All]</option>
+            <% for(i=0; i < rcOptions.length; i++) { %>
+               <option <% if (rc==rcOptions[i]) { %> selected <% } %> value="<%= rcOptions[i] %>"><%= rcOptions[i] %>
+               </option>
+               <% } %>
+         </select>
+         Year :
+         <select id="yearSelect" onchange="refresh()" class="option">
+            <option value="">[Current]</option>
+            <% for(i=0; i < yearOptions.length; i++) { %>
+               <option <% if (fyYear==yearOptions[i]) { %> selected <% } %> value="<%= yearOptions[i] %>"><%=
+                           yearOptions[i] %>
+               </option>
+               <% } %>
+         </select>
+      </h2>
+      <div>
+         <table width="100%">
+            <thead class="table-light table-align">
+               <tr>
+                  <td colspan="3" style="color: gray; font-weight: normal;text-align: left;font-size: 24px;">Team: <%=
+                        team ? team : "[None]" %>
+                  </td>
+               </tr>
 
-
-  
-</script>
-<%     function addCommas(nStr) {
-   nStr += "";
-   x = nStr.split(".");
-   x1 = x[0];
-   x2 = x.length > 1 ? "." + x[1] : "";
-   var rgx = /(\d+)(\d{3})/;
-   while (rgx.test(x1)) {
-      x1 = x1.replace(rgx, "$1" + "," + "$2");
-   }
-   return x1 + x2;
-}
-
- %>
-
-
-      <% if(typeof error=="undefined" ) { %>
-         <center>
-            <h1>
-               <%= title[languageCode] %>
-            </h1>     
-            <h2>                    
-            Ministry Team :
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="teamSelect"
-                           onchange="refresh()">
-                           <option value="">[Select]</option>
-                           <% for(i=0; i < teamOptions.length; i++) { %>
-                              <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%= teamOptions[i] %>
-                              </option>
-                              <% } %>
-                        </select>
-            RC : 
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="rcSelect"
-                           onchange="refresh()">
-                           <option value="">[All]</option>
-                           <% for(i=0; i < rcOptions.length; i++) { %>
-                              <option <% if (rc==rcOptions[i]) { %> selected <% } %> value="<%= rcOptions[i] %>"><%= rcOptions[i] %>
-                              </option>
-                              <% } %>
-                        </select>    
-            Year : 
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="yearSelect"
-                           onchange="refresh()">
-                           <option value="">[Current]</option>
-                           <% for(i=0; i < yearOptions.length; i++) { %>
-                              <option <% if (fyYear==yearOptions[i]) { %> selected <% } %> value="<%= yearOptions[i] %>"><%= yearOptions[i] %>
-                              </option>
-                              <% } %>
-                        </select>
-            Month :
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="monthSelect"
-                              onchange="refresh()">
-                              <option value="">[Select]</option>
-                              <% for(i=0; i < monthOptions.length; i++) { %>
-                                 <option <% if (fyMonth==monthOptions[i]) { %> selected <% } %> value="<%= monthOptions[i] %>"><%=
-                                    monthOptions[i] %>
-                                 </option>
-                                 <% } %>
-                           </select>
-            </h2>
-<div>
-   <table border="0" class="table table-responsive-md">
-      <thead class="table-light table-align">
-      <tr>
-         <td colspan="3" style="color: gray; font-weight: normal;text-align: left;font-size: 24px;">Team: <%= showMTHead %></td>
-      </tr>
- 
-      <tr class="table-active" style="color: gray; font-weight: normal;text-align: left;font-size: 24px;background-color: #D3D3D3;">
-         <td>Total Budget Amount</td>
-         <td>Total Actual Expense</td>
-         <td>Expense/Budget%</td>
-      </tr>
-   </thead>  
-   <tbody>
-      <tr style="color: gray; font-weight: normal;text-align: left;font-size: 18px;">
-         <td><% let sumTotalBgAmount = sumTotalAmount
-            if(isNaN(sumTotalBgAmount)){
-               sumTotalBgAmount = 0
-            }else{
-               sumTotalBgAmount
-            }
-         %>
-      <%= addCommas(sumTotalBgAmount) %></td>
-           <td>
-      <%= addCommas(sumGroupTotalExpense)%> </td>
-           <td>
-            <% let sumTotalpc= sumPercentTotal
-            if(isNaN(sumTotalpc)){
-               sumTotalpc = 0
-            }else{
-               sumTotalpc
-            }
-         %>
-                <%= addCommas(sumTotalpc) %> %
-           </td>
-      </tr>
-   </tbody> 
-   </table>
-</div>
-<% } else if (typeof error=="string" ) { %>
-   <%= error %>
-      <% } %>
-     
-      <% for(i=0; i < getTeamLists.length; i++) { %>      
-    
-   <table border="0" class="table table-responsive-md">                 
-         <thead class="table-light table-align">
-         <tr>
-             <td colspan="5" style="color: grey; font-weight: bold;text-align: left;font-size: 20px;background-color: #D3D3D3;">
-               <%= getTeamLists[i]["RC"] %>
-            </td>            
-         </tr>            
-      </thead>   
-      <tbody>
-         <tr class="table-active" style="color: gray; font-weight: normal;text-align: left;font-size: 18px;" >
-   
-            <td>Project Number</td>
-            <td>Project Name</td>
-            <td>Total Budget Amount</td>
-            <td>Total Actual Expense</td>
-            <td>Expense/Budget%</td>
-         </tr>
-         <% projectData.forEach((e) => {  %>
-            <% 
-        
-            const data = filterGLTransactData.filter((gt) => {
-                         let keyIndex = null;
-         
-                         for (const key in gt)
-                            if (key.includes("Project Number")) {
-                               keyIndex = key;
-                               break;
-                            }
-         
-                         return gt[keyIndex] === e["Project Number"];
-                      })[0];
-         
-                      const newData = {
-                         projectBud: e,
-                         gL: data,
-                      };
-
-         
-                                          
-               %>
-               <% let sumTotalExpense = 0 %>
-             <% if(getTeamLists[i]["RC"]===newData.projectBud["RC"]) { %>
-    
+               <tr class="sub header">
+                  <td align="right">Total Budget Amount</td>
+                  <td align="right">Total Actual Expense</td>
+                  <td align="right">Expense/Budget %</td>
+               </tr>
+            </thead>
+            <tbody>
                <tr style="color: gray; font-weight: normal;text-align: left;font-size: 18px;">
-           
-                     <td>&nbsp;&nbsp;<%= newData.projectBud["Project Number"] %></td>
-                     <td><%= newData.projectBud["Project Name"] %></td>
-                     <td><% let ttbudgetAmount = newData.projectBud["Income Total Amount"]
-                        if(isNaN(ttbudgetAmount)){
-                           ttbudgetAmount = 0
-                        }else{
-                           ttbudgetAmount
-                        }
-                  %>
-                  <%= addCommas(ttbudgetAmount) %>           
-        
-                     </td>                     
-                     <td>
-                        <% let sumExpense = (newData.gL["BASE_OBJECT.Debit"] - newData.gL["BASE_OBJECT.Credit"]) 
-                        if(isNaN(sumExpense)){
-                           sumExpense = 0
-                        }else{
-                           sumExpense
-                        }
-                   
-                   %>            
-                   <%= addCommas(sumExpense) %>
-                     </td>
-                    <td>
-                     <% let BudgetExpense = (sumExpense / newData.projectBud["Income Total Amount"] * 100).toFixed(2)
-                     let checkFinite2 = isFinite(BudgetExpense);
-                       if(isNaN(BudgetExpense)){
-                          BudgetExpense = 0
-                       }else if(checkFinite2 === false){
-                          BudgetExpense = 0
-                       }else{
-                          BudgetExpense
-                       }
-                    
-                  %>
-                  <%= addCommas(BudgetExpense)  %>%   
-                    </td>
-                 
-               </tr>  
- 
-  
-       <% } %>
-    
-  <% }) %>    
-  
-
-
-  
-      <tr class="table-active" style="color: gray; font-weight: bold;font-size: 20px;">
-         <td colspan="2" style="color: gray; font-weight: normal;text-align: left;">Total</td>
-         <td style="color: gray; font-weight: normal;text-align: left;">
-           
-                
-                  <%
-                  let sumBG = 0;
-                  
-                  Object.keys(projectData).forEach((QX) => {
-                     if ((getTeamLists[i]["RC"] === projectData[QX]["RC"] ?? [])) {
-                        sumBG += projectData[QX]["Income Total Amount"];
-                        
-                     } else {
-                        projectData[QX]["Income Total Amount"];
-                     }
-  
-                  });  
-              
-                  %>
-      
-               <%= addCommas(sumBG.toFixed(2).replace(/\.0+$/,'')) %>
-          
-        </td>
-         <td style="color: gray; font-weight: normal;text-align: left;">
-           <%
-           let sumExp = 0;
-           projectData.forEach((e) => {
-           
-              const data = filterGLTransactData.filter((gt) => {
-                 let keyIndex = null;
-  
-                 for (const key in gt)
-                    if (key.includes("Project Number")) {
-                       keyIndex = key;
-                       break;
-                    }
-  
-                 return gt[keyIndex] === e["Project Number"];
-              })[0];
-  
-              const newData = {
-                 projectBud: e,
-                 gL: data,
-              };
-
-              if ((getTeamLists[i]["RC"] === newData.projectBud["RC"] ?? [])) {
-               const sumExpense =
-                  newData.gL["BASE_OBJECT.Debit"] -
-                  newData.gL["BASE_OBJECT.Credit"];
-               sumExp += sumExpense; 
-               }else{
-                const sumExpense =
-                newData.gL["BASE_OBJECT.Debit"] -
-                newData.gL["BASE_OBJECT.Credit"];
-               }
-
-
-    %>
-       
-          
-           <% }); %>  <%= addCommas(sumExp.toFixed(2).replace(/\.0+$/,'')) %>  
-
-        </td>
-         <td></td>
-      </tr>    
-
-
-
-
-   </tbody>
-    
-   </table>     
-
-   <% } %>
+                  <td align="right">
+                     <%= fnValueFormat(totalBudgetAmount) %>
+                  </td>
+                  <td align="right">
+                     <%= fnValueFormat(totalActualExpense)%>
+                  </td>
+                  <td align="right">
+                     <%= fnValueFormat(percentExpenseBudget) %> %
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <div>
+         <table width="100%">
+            <% for(const rc_name in rc_infos) { %>
+               <% const rc=rc_infos[rc_name]; %>
+                  <tr class="header">
+                     <th colspan="5">
+                        <%= rc_name %>
+                     </th>
+                  </tr>
+                  <!-- Header -->
+                  <tr class="sub header">
+                     <td>Project Number</td>
+                     <td>Project Name</td>
+                     <td align="right">Total Budget Amount</td>
+                     <td align="right">Total Actual Expense</td>
+                     <td align="right">Expense/Budget %</td>
+                  </tr>
+                  <% for(const project_number in rc) { %>
+                     <% if (project_number == "total_budget_amount" || project_number == "total_actual_expense") continue; %>
+                     <% const project_info=rc[project_number]; %>
+                        <tr>
+                           <td>
+                              <%= project_number %>
+                           </td>
+                           <td>
+                              <%= project_info.project_name %>
+                           </td>
+                           <td align="right">
+                              <%= fnValueFormat(project_info.budget_amount) %>
+                           </td>
+                           <td align="right">
+                              <%= fnValueFormat(project_info.actual_expense) %>
+                           </td>
+                           <td align="right">
+                              <%= fnValueFormat(project_info.actual_expense && project_info.budget_amount ?
+                                 project_info.actual_expense/project_info.budget_amount: 0) %> %
+                           </td>
+                        </tr>
+                        <% } %>
+                           <!-- Footer -->
+                           <tr class="sub header">
+                              <td colspan="2">Total</td>
+                              <td align="right">
+                                 <%= fnValueFormat(rc.total_budget_amount) %>
+                              </td>
+                              <td align="right">
+                                 <%= fnValueFormat(rc.total_actual_expense) %>
+                              </td>
+                              <td align="right">
+                                 <%= fnValueFormat(rc.total_budget_amount && rc.total_actual_expense ?
+                                    rc.total_actual_expense/rc.total_budget_amount : 0) %> %
+                              </td>
+                           </tr>
+                           <% } %>
+         </table>
+      </div>
+   </center>
