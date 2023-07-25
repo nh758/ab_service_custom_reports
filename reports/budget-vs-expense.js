@@ -22,6 +22,7 @@ const FIELD_IDS = {
    BUDGET_RC: "9bd86c7d-102d-4aa5-ae45-a7bcc19e7192",
    BUDGET_TEAM: "d35ba507-3f93-4eca-8046-b16ea85a2433",
    BUDGET_YEAR: "0053696c-b597-4871-a40b-8360ac63d2b6",
+   BUDGET_TOTAL_INCOME: "4a8c3d42-fdc4-4660-8498-b0aeb136186c",
 
    EXPENSE_TEAM: "f8ee19c3-554c-4354-8cff-63310a1d9ae0",
    EXPENSE_RC: "232d33bd-40e9-4ba6-8718-9718cbc95f5b",
@@ -78,7 +79,12 @@ async function getProjectBudgets(modelProjectBudget, team, rc, year) {
             key: FIELD_IDS.BUDGET_RC,
             rule: "not_in",
             value: FilterOutRC,
-         }
+         },
+         {
+            key: FIELD_IDS.BUDGET_TOTAL_INCOME,
+            rule: "greater",
+            value: 0,
+         },
       ],
    };
 
