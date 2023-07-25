@@ -177,7 +177,9 @@ module.exports = {
       data.team = team ? team : undefined;
       data.rc = rc ? rc : undefined;
       data.fyYear = fyYear;
-      fyYear = fyYear || `FY${new Date().getFullYear().toString().slice(-2)}`;
+      fyYear = (fyYear || `FY${new Date().getFullYear()}`).toString();
+      // NOTE: Convert "FY2023" to "FY23" format
+      fyYear = fyYear.length == 6 ? `FY${fyYear.slice(-2)}` : fyYear;
 
       const myTeams = AB.queryByID(QUERY_IDS.myTeams).model();
       const myRCs = AB.queryByID(QUERY_IDS.myRCs).model();
