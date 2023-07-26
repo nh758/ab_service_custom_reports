@@ -22,7 +22,7 @@ const FIELD_IDS = {
    BUDGET_RC: "9bd86c7d-102d-4aa5-ae45-a7bcc19e7192",
    BUDGET_TEAM: "d35ba507-3f93-4eca-8046-b16ea85a2433",
    BUDGET_YEAR: "0053696c-b597-4871-a40b-8360ac63d2b6",
-   BUDGET_TOTAL_INCOME: "4a8c3d42-fdc4-4660-8498-b0aeb136186c",
+   BUDGET_TOTAL_EXPENSE: "b69b8379-2547-4cf1-a7ad-2ab55e8a56a0",
 
    EXPENSE_TEAM: "f8ee19c3-554c-4354-8cff-63310a1d9ae0",
    EXPENSE_RC: "232d33bd-40e9-4ba6-8718-9718cbc95f5b",
@@ -81,7 +81,7 @@ async function getProjectBudgets(modelProjectBudget, team, rc, year) {
             value: FilterOutRC,
          },
          {
-            key: FIELD_IDS.BUDGET_TOTAL_INCOME,
+            key: FIELD_IDS.BUDGET_TOTAL_EXPENSE,
             rule: "greater",
             value: 0,
          },
@@ -295,7 +295,7 @@ module.exports = {
          const RC = b["RC"];
          const Project_Number = b["Project Number"];
          const Project_Name = b["Project Name"];
-         const Income_Amount = b["Income Total Amount"];
+         const Expense_Amount = b["Expense Total Amount"];
 
          data.rc_infos[RC] = data.rc_infos[RC] ?? {
             total_budget_amount: 0,
@@ -308,9 +308,9 @@ module.exports = {
             actual_expense: 0,
          };
 
-         data.rc_infos[RC][Project_Number].budget_amount += Income_Amount;
-         data.rc_infos[RC].total_budget_amount += Income_Amount;
-         data.totalBudgetAmount += Income_Amount;
+         data.rc_infos[RC][Project_Number].budget_amount += Expense_Amount;
+         data.rc_infos[RC].total_budget_amount += Expense_Amount;
+         data.totalBudgetAmount += Expense_Amount;
       });
 
       // Pull EXPENSE of each Project
@@ -339,7 +339,7 @@ module.exports = {
          data.totalActualExpense += ACTUAL_EXPENSE;
       });
 
-      data.percentExpenseBudget = data.totalBudgetAmount && data.totalActualExpense ? data.totalActualExpense/ data.totalBudgetAmount : 0;
+      data.percentExpenseBudget = data.totalBudgetAmount && data.totalActualExpense ? (data.totalActualExpense / data.totalBudgetAmount) * 100 : 0;
 
       return data;
    },

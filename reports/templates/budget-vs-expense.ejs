@@ -117,7 +117,7 @@
                            </td>
                            <td align="right">
                               <%= fnValueFormat(project_info.actual_expense && project_info.budget_amount ?
-                                 project_info.actual_expense/project_info.budget_amount: 0) %> %
+                                 (project_info.actual_expense/project_info.budget_amount) * 100 : 0) %> %
                            </td>
                         </tr>
                         <% } %>
@@ -132,7 +132,7 @@
                               </td>
                               <td align="right">
                                  <%= fnValueFormat(rc.total_budget_amount && rc.total_actual_expense ?
-                                    rc.total_actual_expense/rc.total_budget_amount : 0) %> %
+                                    (rc.total_actual_expense/rc.total_budget_amount) * 100 : 0) %> %
                               </td>
                            </tr>
                            <% } %>
