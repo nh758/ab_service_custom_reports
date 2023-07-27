@@ -192,7 +192,7 @@ module.exports = {
          current_path: __dirname,
          title: {
             en: "Budget vs. Actual",
-            zh: "预算 VS 实际的",
+            zh: "实际的 to 实际花费",
          },
          fnValueFormat: utils.valueFormat,
       };
