@@ -1,112 +1,64 @@
-<%- include('/app/reports/templates/stylesheets') %>
-<script type="text/javascript">
-      function refresh() {
-         const teamVal = document.getElementById("teamSelect").value,
-               rcVal = document.getElementById("rcSelect").value,
-               yearVal = document.getElementById("yearSelect").value,
-               monthVal = document.getElementById("monthSelect").value;
-
-         location.href = `/report/local-income-expense?team=${teamVal}&rc=${rcVal}&fyYear=${yearVal}&fyMonth=${monthVal}`;
-      }
-
-</script>
-   <% if(typeof error=="undefined" ) { %>
-      <center>
-         <h1>
-            <%= title[languageCode] %>
-         </h1>
-         <h2>
-            Ministry Team :
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="teamSelect"
-               onchange="refresh()">
-               <option value="">[Select]</option>
-               <% for(var i=0; i < teamOptions.length; i++) { %>
-                  <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%= teamOptions[i] %>
-                  </option>
-                  <% } %>
-            </select>
-            RC :
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="rcSelect"
-               onchange="refresh()">
-               <option value="">[All]</option>
-               <% for(var i=0; i < rcOptions.length; i++) { %>
-                  <option <% if (rc==rcOptions[i]) { %> selected <% } %> value="<%= rcOptions[i] %>"><%= rcOptions[i] %>
-                  </option>
-                  <% } %>
-            </select>
-            Year :
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="yearSelect"
-               onchange="refresh()">
-               <option value="">[Current]</option>
-               <% for(var i=0; i < yearOptions.length; i++) { %>
-                  <option <% if (fyYear==yearOptions[i]) { %> selected <% } %> value="<%= yearOptions[i] %>"><%= yearOptions[i] %>
-                  </option>
-                  <% } %>
-            </select>
-            </select>
-
-            Month :
-            <select style="font-size: 24px; color: gray; border: 1px solid #CCC;" id="monthSelect"
-               onchange="refresh()">
-               <option value="">[Select]</option>
-               <% for(var i=0; i < monthOptions.length; i++) { %>
-                  <option <% if (fyMonth==monthOptions[i]) { %> selected <% } %> value="<%= monthOptions[i] %>"><%=
-                     monthOptions[i] %>
-                  </option>
-                  <% } %>
-            </select>
-         </h2>
-      </center>
-      <div>
-         <table width="100%">
-            <!-- table header -->
-            <!-- table body -->
-            <% for(var i=0; i < categories.length; i++) { %>
-               <tr class="sub">
-                  <td colspan=2 align="left"><strong>
-                        <%= categories[i].translation[languageCode] %>
-                           <%= category[languageCode] %>
-                     </strong></td>
-               </tr>
-               <% for(var x=0; x < categories[i].sub.length; x++) { %>
-                  <tr>
-                     <td align="left">
-                        <%= categories[i].sub[x].translation[languageCode] %> <span style="opacity: 0.4">(<%=
-                                 categories[i].sub[x].id %>
-                                 <% if(categories[i].type=="Expenses" ) { %>00-99<% } %>)</span>
-                     </td>
-                     <td align="right">
-                        <%= (categories[i].sub[x].sum).toFixed(2) %>
-                     </td>
+<html>
+   <head>
+      <%- include('/app/reports/templates/stylesheets') %>
+   </head>
+   <body>
+      <script type="text/javascript">
+         <%- include('/app/reports/scripts/local-income-expense.js') %>
+      </script>
+      <% if(typeof error=="undefined" ) { %>
+         <div>
+            <table width="100%">
+               <!-- table header -->
+               <!-- table body -->
+               <% for(var i=0; i < categories.length; i++) { %>
+                  <tr class="sub">
+                     <td colspan=2 align="left"><strong>
+                           <%= categories[i].translation[languageCode] %>
+                              <%= category[languageCode] %>
+                        </strong></td>
                   </tr>
-                  <% } %>
-                     <tr class="total">
-                        <td align="left"><strong>
-                              <%= categories[i].translation[languageCode] %>
-                                 <%= total[languageCode] %>
-                           </strong></td>
-                        <td align="right"><strong>
-                              <%= categories[i].sum %>
-                           </strong></td>
+                  <% for(var x=0; x < categories[i].sub.length; x++) { %>
+                     <tr>
+                        <td align="left">
+                           <%= categories[i].sub[x].translation[languageCode] %> <span style="opacity: 0.4">(<%=
+                                    categories[i].sub[x].id %>
+                                    <% if(categories[i].type=="Expenses" ) { %>00-99<% } %>)</span>
+                        </td>
+                        <td align="right">
+                           <%= (categories[i].sub[x].sum).toFixed(2) %>
+                        </td>
                      </tr>
-                     <% if(categories[i].type=="Local Income" ) { %>
-                        <tr>
-                           <td colspan=2>&nbsp;</td>
+                     <% } %>
+                        <tr class="total">
+                           <td align="left"><strong>
+                                 <%= categories[i].translation[languageCode] %>
+                                    <%= total[languageCode] %>
+                              </strong></td>
+                           <td align="right"><strong>
+                                 <%= categories[i].sum %>
+                              </strong></td>
                         </tr>
-                        <% } %>
+                        <% if(categories[i].type=="Local Income" ) { %>
+                           <tr>
+                              <td colspan=2>&nbsp;</td>
+                           </tr>
                            <% } %>
-                              <table>
-                                 <div
-                                    style="text-align: center; <% if(localPercentage < 50) { %>background: red; color: white; text-shadow:  0 1px 1px rgba(0,0,0,0.4);<% } %> padding: 20px;">
-                                    <h1 style="padding-bottom: 5px; margin: 0; font-size: 38px;">
-                                       <%= localPercentage %>%
-                                    </h1>
-                                    <h5 style="margin: 0;">
-                                       <%= categories[0].translation[languageCode] %> / <%=
-                                             categories[1].translation[languageCode] %>
-                                    </h5>
-                                 </div>
-      </div>
-      <% } else if (typeof error=="string" ) { %>
-         <%= error %>
-            <% } %>
+                              <% } %>
+                                 <table>
+                                    <div
+                                       style="text-align: center; <% if(localPercentage < 50) { %>background: red; color: white; text-shadow:  0 1px 1px rgba(0,0,0,0.4);<% } %> padding: 20px;">
+                                       <h1 style="padding-bottom: 5px; margin: 0; font-size: 38px;">
+                                          <%= localPercentage %>%
+                                       </h1>
+                                       <h5 style="margin: 0;">
+                                          <%= categories[0].translation[languageCode] %> / <%=
+                                                categories[1].translation[languageCode] %>
+                                       </h5>
+                                    </div>
+         </div>
+         <% } else if (typeof error=="string" ) { %>
+            <%= error %>
+               <% } %>
+   </body>
+</html>

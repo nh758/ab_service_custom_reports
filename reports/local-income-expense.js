@@ -9,13 +9,12 @@ const path = require("path");
 module.exports = {
    // GET: /report/local-income-expense
    // get the local and expense income and calculate the sums
-   prepareData: async (AB, { team, rc, fyYear, fyMonth }, req) => {
+   prepareData: async (AB, { Teams, RCs, fyMonth }, req) => {
       const ids = {
          myTeamsQueryId: "62a0c464-1e67-4cfb-9592-a7c5ed9db45c",
          myRCsQueryId: "241a977c-7748-420d-9dcb-eff53e66a43f",
          myRCsTeamFieldId: "ae4ace97-f70c-4132-8fa0-1a0b1a9c7859",
          balanceObjId: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
-         yearObjId: "6c398e8f-ddde-4e26-b142-353de5b16397",
       };
 
       // Our data object
@@ -24,7 +23,7 @@ module.exports = {
             en: "Local Income vs Expense",
             zh: "本地收入VS 支出",
          },
-         rc: rc,
+         rc: RCs,
          total: {
             en: "Total",
             zh: "总额",
@@ -134,12 +133,6 @@ module.exports = {
          ],
       };
 
-      // get our passed params
-      data.team = team ? team : undefined;
-      data.rc = rc ? rc : undefined;
-      data.fyYear = fyYear ? fyYear : undefined;
-      data.fyMonth = fyMonth ? fyMonth : undefined;
-
       function accountInCategory(account, category) {
          const accountDigits = account?.toString().split("") ?? [];
          const categoryDigits = category?.toString().split("") ?? [];
@@ -165,93 +158,8 @@ module.exports = {
          }
       }
 
-      function getMonthList() {
-         var array = [
-            "01",
-            "02",
-            "03",
-            "04",
-            "05",
-            "06",
-            "07",
-            "08",
-            "09",
-            "10",
-            "11",
-            "12",
-         ];
-
-         // array.sort();
-         return array;
-      }
-
-      function sort(a, b) {
-         return (a ?? "").toLowerCase().localeCompare((b ?? "").toLowerCase());
-      }
-
-      const myTeams = AB.queryByID(ids.myTeamsQueryId).model();
       const myRCs = AB.queryByID(ids.myRCsQueryId).model();
       const balanceObj = AB.objectByID(ids.balanceObjId).model();
-      const yearObj = AB.objectByID(ids.yearObjId).model();
-
-      // Load Options
-      const [teamsArray, rcs, yearArray] = await Promise.all([
-         // return teams
-         myTeams.findAll(
-            {
-               populate: false,
-            },
-            { username: req._user.username },
-            AB.req
-         ),
-         // return myRCs
-         myRCs.findAll(
-            {
-               where: {
-                  glue: "and",
-                  rules: team
-                     ? [
-                          {
-                             key: ids.myRCsTeamFieldId,
-                             rule: "equals",
-                             value: team,
-                          },
-                       ]
-                     : [],
-               },
-               populate: false,
-            },
-            { username: req._user.username },
-            AB.req
-         ),
-         // return year
-         yearObj.findAll(
-            {
-               populate: false,
-            },
-            { username: req._user.username },
-            AB.req
-         ),
-      ]);
-
-      data.teamOptions = (teamsArray ?? [])
-         .map((t) => t["BASE_OBJECT.Name"])
-         .filter(function (team, ft, tl) {
-            return tl.indexOf(team) == ft;
-         })
-         .sort(sort);
-
-      data.rcOptions = (rcs ?? [])
-         .map((t) => t["BASE_OBJECT.RC Name"])
-         // Remove duplicated RC
-         .filter(function (rc, pos, self) {
-            return self.indexOf(rc) == pos;
-         })
-         .sort(sort);
-
-      data.yearOptions = (yearArray ?? []).map((t) => t["FYear"]).sort(sort);
-
-      data.monthOptions = getMonthList(AB);
 
       // Load Report Data
       const where = {
@@ -259,35 +167,72 @@ module.exports = {
          rules: [],
       };
 
-      // Select a specified RC
-      if (rc) {
-         where.rules.push({
-            key: "RC Code",
-            rule: "equals",
-            value: rc,
+      // Select specified RCs
+      if (RCs) {
+         const rcCond = {
+            glue: "or",
+            rules: [],
+         };
+
+         RCs.split(",").forEach((rcVal) => {
+            if (!rcVal) return;
+            rcCond.rules.push({
+               key: "RC Code",
+               rule: "equals",
+               value: rcVal.trim(),
+            });
          });
+
+         where.rules.push(rcCond);
       }
-      // All of RC of a selected TEAM
+      // All of RC of selected TEAMs
       else {
+         const teamCond = {
+            glue: "or",
+            rules: [],
+         };
+
+         (Teams ?? "").split(",").forEach((team) => {
+            teamCond.rules.push({
+               key: ids.myRCsTeamFieldId,
+               rule: "equals",
+               value: team,
+            });
+         });
+
+         const rcs = (await myRCs.findAll(
+            {
+               where: teamCond,
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         )).map((t) => t["BASE_OBJECT.RC Name"]);
+
          where.rules.push({
             key: "RC Code",
             rule: "in",
-            value: data.rcOptions,
+            value: rcs,
          });
       }
 
       if (fyMonth) {
-         const year = fyYear || new Date().getFullYear();
-         const monthJoin = `FY${year?.toString().slice(-2)} M${fyMonth}`;
-         where.rules.push({
-            key: "FY Period",
-            rule: "contains",
-            value: monthJoin,
+         const monthCond = {
+            glue: "or",
+            rules: [],
+         };
+
+         (fyMonth ?? "").split(",").forEach((month) => {
+            monthCond.rules.push({
+               key: "FY Period",
+               rule: "contains",
+               value: month,
+            });
          });
       }
 
       let records = [];
-      if (data.team && where?.rules?.length) {
+      if (Teams && fyMonth && where?.rules?.length) {
          records = await balanceObj.findAll(
             {
                where: where,
