@@ -9,9 +9,9 @@ const ids = {
    balanceObjId: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
    monthObjId: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
 
+   monthViewId: `${dom_id}_month`,
    teamViewId: `${dom_id}_team`,
    rcViewId: `${dom_id}_rc`,
-   monthViewId: `${dom_id}_month`,
 };
 
 async function ui() {
@@ -40,6 +40,15 @@ async function ui() {
             cols: [
                { fillspace: true },
                {
+                  id: ids.monthViewId,
+                  view: "multiselect",
+                  placeholder: "[Select]",
+                  label: "FY Period:",
+                  labelWidth: 80,
+                  width: 250,
+                  options: [],
+               },
+               {
                   id: ids.teamViewId,
                   view: "multiselect",
                   placeholder: "[Select]",
@@ -57,20 +66,15 @@ async function ui() {
                   width: 250,
                   options: [],
                },
-               {
-                  id: ids.monthViewId,
-                  view: "multiselect",
-                  placeholder: "[Select]",
-                  label: "FY Period:",
-                  labelWidth: 80,
-                  width: 250,
-                  options: [],
-               },
                { fillspace: true },
             ],
          },
       ],
    });
+
+   AB.Webix.extend($$(ids.monthViewId), AB.Webix.ProgressBar);
+   AB.Webix.extend($$(ids.teamViewId), AB.Webix.ProgressBar);
+   AB.Webix.extend($$(ids.rcViewId), AB.Webix.ProgressBar);
 
    await loadOptions();
    _attachEvents();
@@ -101,6 +105,8 @@ async function loadOptions() {
    const myTeams = AB.queryByID(ids.myTeamsQueryId).model();
    const monthObj = AB.objectByID(ids.monthObjId).model();
 
+   _busy();
+
    // Load Options
    const [teams, months] = await Promise.all([
       // return teams
@@ -113,16 +119,23 @@ async function loadOptions() {
       }),
    ]);
 
+   _defineOptions(ids.monthViewId, (months && months.data) || [], "FY Per");
    _defineOptions(
       ids.teamViewId,
       (teams && teams.data) || [],
       "BASE_OBJECT.Name"
    );
    _defineRcOptions();
-   _defineOptions(ids.monthViewId, (months && months.data) || [], "FY Per");
+
+   _ready();
 }
 
 async function _defineRcOptions() {
+   $$(ids.rcViewId).blockEvent();
+   $$(ids.rcViewId).setValue([]);
+   $$(ids.rcViewId).disable();
+   $$(ids.rcViewId).showProgress({ type: "icon" });
+
    const Teams = $$(ids.teamViewId).getValue();
    const myRCs = AB.queryByID(ids.myRCsQueryId).model();
    const teamCond = {
@@ -143,10 +156,10 @@ async function _defineRcOptions() {
       populate: false,
    });
 
-   $$(ids.rcViewId).blockEvent();
-   $$(ids.rcViewId).setValue([]);
    _defineOptions(ids.rcViewId, (rcs && rcs.data) || [], "BASE_OBJECT.RC Name");
    $$(ids.rcViewId).unblockEvent();
+   $$(ids.rcViewId).hideProgress();
+   $$(ids.rcViewId).enable();
 }
 
 function _defineOptions(webixId, options, propertyName) {
@@ -169,6 +182,26 @@ function _sort(a, b) {
    a = a || "";
    b = b || "";
    return a.toLowerCase().localeCompare(b.toLowerCase());
+}
+
+function _busy() {
+   $$(ids.monthViewId).showProgress({ type: "icon" });
+   $$(ids.teamViewId).showProgress({ type: "icon" });
+   $$(ids.rcViewId).showProgress({ type: "icon" });
+
+   $$(ids.monthViewId).disable();
+   $$(ids.teamViewId).disable();
+   $$(ids.rcViewId).disable();
+}
+
+function _ready() {
+   $$(ids.monthViewId).hideProgress();
+   $$(ids.teamViewId).hideProgress();
+   $$(ids.rcViewId).hideProgress();
+
+   $$(ids.monthViewId).enable();
+   $$(ids.teamViewId).enable();
+   $$(ids.rcViewId).enable();
 }
 
 function refresh() {
