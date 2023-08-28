@@ -9,13 +9,12 @@ const path = require("path");
 module.exports = {
    // GET: /report/local-income-expense
    // get the local and expense income and calculate the sums
-   prepareData: async (AB, { Teams, RCs, fyYear, fyMonth }, req) => {
+   prepareData: async (AB, { Teams, RCs, fyMonth }, req) => {
       const ids = {
          myTeamsQueryId: "62a0c464-1e67-4cfb-9592-a7c5ed9db45c",
          myRCsQueryId: "241a977c-7748-420d-9dcb-eff53e66a43f",
          myRCsTeamFieldId: "ae4ace97-f70c-4132-8fa0-1a0b1a9c7859",
          balanceObjId: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
-         yearObjId: "6c398e8f-ddde-4e26-b142-353de5b16397",
       };
 
       // Our data object
@@ -134,10 +133,6 @@ module.exports = {
          ],
       };
 
-      // get our passed params
-      data.fyYear = fyYear ? fyYear : undefined;
-      data.fyMonth = fyMonth ? fyMonth : undefined;
-
       function accountInCategory(account, category) {
          const accountDigits = account?.toString().split("") ?? [];
          const categoryDigits = category?.toString().split("") ?? [];
@@ -222,17 +217,22 @@ module.exports = {
       }
 
       if (fyMonth) {
-         const year = fyYear || new Date().getFullYear();
-         const monthJoin = `FY${year?.toString().slice(-2)} M${fyMonth}`;
-         where.rules.push({
-            key: "FY Period",
-            rule: "contains",
-            value: monthJoin,
+         const monthCond = {
+            glue: "or",
+            rules: [],
+         };
+
+         (fyMonth ?? "").split(",").forEach((month) => {
+            monthCond.rules.push({
+               key: "FY Period",
+               rule: "contains",
+               value: month,
+            });
          });
       }
 
       let records = [];
-      if (Teams && where?.rules?.length) {
+      if (Teams && fyMonth && where?.rules?.length) {
          records = await balanceObj.findAll(
             {
                where: where,
