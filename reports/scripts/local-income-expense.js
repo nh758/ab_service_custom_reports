@@ -231,7 +231,6 @@ function _ready() {
 }
 
 function refresh() {
-   console.log("REFRESH");
    const $start = $$(ids.startViewId),
       $end = $$(ids.endViewId),
       $team = $$(ids.teamViewId),
