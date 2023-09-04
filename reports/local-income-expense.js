@@ -9,7 +9,7 @@ const path = require("path");
 module.exports = {
    // GET: /report/local-income-expense
    // get the local and expense income and calculate the sums
-   prepareData: async (AB, { Teams, RCs, fyMonth }, req) => {
+   prepareData: async (AB, { Teams, RCs, start, end }, req) => {
       const ids = {
          myTeamsQueryId: "62a0c464-1e67-4cfb-9592-a7c5ed9db45c",
          myRCsQueryId: "241a977c-7748-420d-9dcb-eff53e66a43f",
@@ -216,23 +216,24 @@ module.exports = {
          });
       }
 
-      if (fyMonth) {
-         const monthCond = {
-            glue: "or",
-            rules: [],
-         };
+      if (start) {
+         where.rules.push({
+            key: "FY Period",
+            rule: "greater_or_equal",
+            value: start,
+         });
+      }
 
-         (fyMonth ?? "").split(",").forEach((month) => {
-            monthCond.rules.push({
-               key: "FY Period",
-               rule: "contains",
-               value: month,
-            });
+      if (end) {
+         where.rules.push({
+            key: "FY Period",
+            rule: "less_or_equal",
+            value: end,
          });
       }
 
       let records = [];
-      if (Teams && fyMonth && where?.rules?.length) {
+      if (Teams && start && where?.rules?.length) {
          records = await balanceObj.findAll(
             {
                where: where,

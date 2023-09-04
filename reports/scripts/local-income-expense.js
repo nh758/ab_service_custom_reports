@@ -9,7 +9,8 @@ const ids = {
    balanceObjId: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
    monthObjId: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
 
-   monthViewId: `${dom_id}_month`,
+   startViewId: `${dom_id}_start`,
+   endViewId: `${dom_id}_end`,
    teamViewId: `${dom_id}_team`,
    rcViewId: `${dom_id}_rc`,
 };
@@ -40,12 +41,21 @@ async function ui() {
             cols: [
                { fillspace: true },
                {
-                  id: ids.monthViewId,
-                  view: "multiselect",
+                  id: ids.startViewId,
+                  view: "richselect",
                   placeholder: "[Select]",
                   label: "FY Period:",
                   labelWidth: 80,
-                  width: 250,
+                  width: 210,
+                  options: [],
+               },
+               {
+                  id: ids.endViewId,
+                  view: "richselect",
+                  placeholder: "[Select]",
+                  label: " - ",
+                  labelWidth: 20,
+                  width: 150,
                   options: [],
                },
                {
@@ -72,7 +82,8 @@ async function ui() {
       ],
    });
 
-   AB.Webix.extend($$(ids.monthViewId), AB.Webix.ProgressBar);
+   AB.Webix.extend($$(ids.startViewId), AB.Webix.ProgressBar);
+   AB.Webix.extend($$(ids.endViewId), AB.Webix.ProgressBar);
    AB.Webix.extend($$(ids.teamViewId), AB.Webix.ProgressBar);
    AB.Webix.extend($$(ids.rcViewId), AB.Webix.ProgressBar);
 
@@ -81,22 +92,31 @@ async function ui() {
 }
 
 function _attachEvents() {
-   const $team = $$(ids.teamViewId),
-      $rc = $$(ids.rcViewId),
-      $month = $$(ids.monthViewId);
+   const $start = $$(ids.startViewId),
+      $end = $$(ids.endViewId),
+      $team = $$(ids.teamViewId),
+      $rc = $$(ids.rcViewId);
 
+   if ($start.__onChange) $start.detachEvent($start.__onChange);
+   if ($end.__onChange) $end.detachEvent($end.__onChange);
    if ($team.__onChange) $team.detachEvent($team.__onChange);
    if ($rc.__onChange) $rc.detachEvent($rc.__onChange);
-   if ($month.__onChange) $month.detachEvent($month.__onChange);
 
+   $start.__onChange = $start.attachEvent("onChange", () => {
+      const startVal = $start.getValue();
+      const endVal = $end.getValue();
+
+      if (startVal < endVal) refresh();
+      else $end.setValue($start.getValue());
+   });
+   $end.__onChange = $end.attachEvent("onChange", () => {
+      refresh();
+   });
    $team.__onChange = $team.attachEvent("onChange", async () => {
       await _defineRcOptions();
       refresh();
    });
    $rc.__onChange = $rc.attachEvent("onChange", () => {
-      refresh();
-   });
-   $month.__onChange = $month.attachEvent("onChange", () => {
       refresh();
    });
 }
@@ -119,7 +139,8 @@ async function loadOptions() {
       }),
    ]);
 
-   _defineOptions(ids.monthViewId, (months && months.data) || [], "FY Per");
+   _defineOptions(ids.startViewId, (months && months.data) || [], "FY Per");
+   _defineOptions(ids.endViewId, (months && months.data) || [], "FY Per");
    _defineOptions(
       ids.teamViewId,
       (teams && teams.data) || [],
@@ -131,10 +152,11 @@ async function loadOptions() {
 }
 
 async function _defineRcOptions() {
-   $$(ids.rcViewId).blockEvent();
-   $$(ids.rcViewId).setValue([]);
-   $$(ids.rcViewId).disable();
-   $$(ids.rcViewId).showProgress({ type: "icon" });
+   const $rc = $$(ids.rcViewId);
+   $rc.blockEvent();
+   $rc.setValue([]);
+   $rc.disable();
+   $rc.showProgress({ type: "icon" });
 
    const Teams = $$(ids.teamViewId).getValue();
    const myRCs = AB.queryByID(ids.myRCsQueryId).model();
@@ -157,9 +179,9 @@ async function _defineRcOptions() {
    });
 
    _defineOptions(ids.rcViewId, (rcs && rcs.data) || [], "BASE_OBJECT.RC Name");
-   $$(ids.rcViewId).unblockEvent();
-   $$(ids.rcViewId).hideProgress();
-   $$(ids.rcViewId).enable();
+   $rc.unblockEvent();
+   $rc.hideProgress();
+   $rc.enable();
 }
 
 function _defineOptions(webixId, options, propertyName) {
@@ -185,38 +207,44 @@ function _sort(a, b) {
 }
 
 function _busy() {
-   $$(ids.monthViewId).showProgress({ type: "icon" });
+   $$(ids.startViewId).showProgress({ type: "icon" });
+   $$(ids.endViewId).showProgress({ type: "icon" });
    $$(ids.teamViewId).showProgress({ type: "icon" });
    $$(ids.rcViewId).showProgress({ type: "icon" });
 
-   $$(ids.monthViewId).disable();
+   $$(ids.startViewId).disable();
+   $$(ids.endViewId).disable();
    $$(ids.teamViewId).disable();
    $$(ids.rcViewId).disable();
 }
 
 function _ready() {
-   $$(ids.monthViewId).hideProgress();
+   $$(ids.startViewId).hideProgress();
+   $$(ids.endViewId).hideProgress();
    $$(ids.teamViewId).hideProgress();
    $$(ids.rcViewId).hideProgress();
 
-   $$(ids.monthViewId).enable();
+   $$(ids.startViewId).enable();
+   $$(ids.endViewId).enable();
    $$(ids.teamViewId).enable();
    $$(ids.rcViewId).enable();
 }
 
 function refresh() {
-   const $team = $$(ids.teamViewId),
-      $rc = $$(ids.rcViewId),
-      $month = $$(ids.monthViewId);
+   const $start = $$(ids.startViewId),
+      $end = $$(ids.endViewId),
+      $team = $$(ids.teamViewId),
+      $rc = $$(ids.rcViewId);
 
-   const teamVal = $team.getValue(),
-      rcVal = $rc.getValue(),
-      monthVal = $month.getValue();
+   const startVal = $start.getValue(),
+      endVal = $end.getValue(),
+      teamVal = $team.getValue(),
+      rcVal = $rc.getValue();
 
    const iFrame = parent.document.getElementById(
       "local-income-expense-report-frame"
    );
-   iFrame.src = `/report/local-income-expense?Teams=${teamVal}&RCs=${rcVal}&fyMonth=${monthVal}`;
+   iFrame.src = `/report/local-income-expense?Teams=${teamVal}&RCs=${rcVal}&start=${startVal}&end=${endVal}`;
 }
 
 ui();
