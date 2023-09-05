@@ -8,16 +8,22 @@ const ids = {
    myRCsTeamFieldId: "ae4ace97-f70c-4132-8fa0-1a0b1a9c7859",
    balanceObjId: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
    monthObjId: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
+   mccFieldId: "eb0f60c3-55cf-40b1-8408-64501f41fa71",
 
    startViewId: `${dom_id}_start`,
    endViewId: `${dom_id}_end`,
    teamViewId: `${dom_id}_team`,
+   mccViewId: `${dom_id}_mcc`,
    rcViewId: `${dom_id}_rc`,
 };
 
+function reportElementId() {
+   return `${dom_id}_webix`;
+}
+
 async function ui() {
    const report_dom = parent.document.getElementById(dom_id);
-   const elem_id = `${dom_id}_webix`;
+   const elem_id = reportElementId();
 
    if ($$(elem_id) && report_dom.innerHTML) {
       _attachEvents();
@@ -28,57 +34,76 @@ async function ui() {
       id: elem_id,
       container: report_dom,
       view: "layout",
-      rows: [
-         // Title
+      cols: [
+         { fillspace: true },
          {
-            view: "label",
-            align: "center",
-            label: "<h1><%= title[languageCode] %></h1>",
-            height: 80,
-         },
-         // Options
-         {
-            cols: [
-               { fillspace: true },
+            rows: [
+               // Title
                {
-                  id: ids.startViewId,
-                  view: "richselect",
-                  placeholder: "[Select]",
-                  label: "FY Period:",
-                  labelWidth: 80,
-                  width: 210,
-                  options: [],
+                  view: "label",
+                  align: "center",
+                  label: "<h1><%= title[languageCode] %></h1>",
+                  height: 80,
+               },
+               // Options
+               {
+                  cols: [
+                     { fillspace: true },
+                     {
+                        id: ids.startViewId,
+                        view: "richselect",
+                        placeholder: "[Select]",
+                        label: "FY Period:",
+                        labelWidth: 80,
+                        width: 210,
+                        options: [],
+                     },
+                     {
+                        id: ids.endViewId,
+                        view: "richselect",
+                        placeholder: "[Select]",
+                        label: " - ",
+                        labelWidth: 20,
+                        width: 150,
+                        options: [],
+                     },
+                     { fillspace: true },
+                  ],
                },
                {
-                  id: ids.endViewId,
-                  view: "richselect",
-                  placeholder: "[Select]",
-                  label: " - ",
-                  labelWidth: 20,
-                  width: 150,
-                  options: [],
+                  cols: [
+                     {
+                        id: ids.teamViewId,
+                        view: "multiselect",
+                        placeholder: "[Select]",
+                        label: "Ministry Team:",
+                        labelWidth: 110,
+                        width: 300,
+                        options: [],
+                     },
+                     {
+                        id: ids.mccViewId,
+                        view: "multiselect",
+                        placeholder: "[All]",
+                        label: "MCC:",
+                        labelWidth: 50,
+                        width: 250,
+                        options: [],
+                     },
+                     {
+                        id: ids.rcViewId,
+                        view: "multiselect",
+                        placeholder: "[All]",
+                        label: "RC:",
+                        labelWidth: 50,
+                        width: 250,
+                        options: [],
+                     },
+                  ],
                },
-               {
-                  id: ids.teamViewId,
-                  view: "multiselect",
-                  placeholder: "[Select]",
-                  label: "Ministry Team:",
-                  labelWidth: 110,
-                  width: 300,
-                  options: [],
-               },
-               {
-                  id: ids.rcViewId,
-                  view: "multiselect",
-                  placeholder: "[All]",
-                  label: "RC:",
-                  labelWidth: 50,
-                  width: 250,
-                  options: [],
-               },
-               { fillspace: true },
             ],
          },
+         { fillspace: true },
       ],
    });
 
@@ -95,11 +120,13 @@ function _attachEvents() {
    const $start = $$(ids.startViewId),
       $end = $$(ids.endViewId),
       $team = $$(ids.teamViewId),
+      $mcc = $$(ids.mccViewId),
       $rc = $$(ids.rcViewId);
 
    if ($start.__onChange) $start.detachEvent($start.__onChange);
    if ($end.__onChange) $end.detachEvent($end.__onChange);
    if ($team.__onChange) $team.detachEvent($team.__onChange);
+   if ($mcc.__onChange) $mcc.detachEvent($mcc.__onChange);
    if ($rc.__onChange) $rc.detachEvent($rc.__onChange);
 
    $start.__onChange = $start.attachEvent("onChange", () => {
@@ -115,6 +142,19 @@ function _attachEvents() {
    $team.__onChange = $team.attachEvent("onChange", async () => {
       await _defineRcOptions();
       refresh();
+   });
+   $mcc.__onChange = $mcc.attachEvent("onChange", async () => {
+      const mccVal = $mcc.getValue();
+
+      const rcs = [];
+
+      mccVal.split(",").forEach((mcc) => {
+         ($$(reportElementId()).__mccRcs || []).forEach((item) => {
+            if (item.mcc == mcc && rcs.indexOf(item.rc) < 0) rcs.push(item.rc);
+         });
+      });
+
+      $rc.setValue(rcs);
    });
    $rc.__onChange = $rc.attachEvent("onChange", () => {
       refresh();
@@ -151,15 +191,23 @@ async function loadOptions() {
    _ready();
 }
 
-async function _defineRcOptions() {
+const _defineRcOptions = async () => {
    const $rc = $$(ids.rcViewId);
+   const $mcc = $$(ids.mccViewId);
+
+   $mcc.blockEvent();
+   $mcc.setValue([]);
+   $mcc.unblockEvent();
+
    $rc.blockEvent();
    $rc.setValue([]);
    $rc.disable();
    $rc.showProgress({ type: "icon" });
 
    const Teams = $$(ids.teamViewId).getValue();
-   const myRCs = AB.queryByID(ids.myRCsQueryId).model();
+   const myRCs = AB.queryByID(ids.myRCsQueryId);
+   const myRCsModel = myRCs.model();
+   const mccField = myRCs.fieldByID(ids.mccFieldId);
    const teamCond = {
       glue: "or",
       rules: [],
@@ -173,30 +221,38 @@ async function _defineRcOptions() {
       });
    });
 
-   const rcs = await myRCs.findAll({
+   let rcs = await myRCsModel.findAll({
       where: teamCond,
       populate: false,
    });
+   $$(reportElementId()).__mccRcs = ((rcs && rcs.data) || []).map((item) => {
+      return {
+         rc: item["BASE_OBJECT.RC Name"],
+         mcc: item[mccField.columnName],
+      };
+   });
 
-   _defineOptions(ids.rcViewId, (rcs && rcs.data) || [], "BASE_OBJECT.RC Name");
+   _defineOptions(ids.mccViewId, $$(reportElementId()).__mccRcs, "mcc");
+   _defineOptions(ids.rcViewId, $$(reportElementId()).__mccRcs, "rc");
+
    $rc.unblockEvent();
    $rc.hideProgress();
    $rc.enable();
-}
+};
 
-function _defineOptions(webixId, options, propertyName) {
+function _defineOptions(webixId, list, propertyName) {
+   const options = list
+      .map((t) => t[propertyName])
+      .filter((team, ft, tl) => team && tl.indexOf(team) == ft);
+
    $$(webixId).define(
       "options",
-      options
-         .map((t) => t[propertyName])
-         .filter((team, ft, tl) => tl.indexOf(team) == ft)
-         .sort(_sort)
-         .map((opt) => {
-            return {
-               id: opt,
-               value: opt,
-            };
-         })
+      options.sort(_sort).map((opt) => {
+         return {
+            id: opt,
+            value: opt,
+         };
+      })
    );
 }
 
