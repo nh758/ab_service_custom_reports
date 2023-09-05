@@ -216,21 +216,46 @@ module.exports = {
          });
       }
 
+      // for example, in the old report, when I run report with FY23 M04, the local income is 5141, 
+      // and FY23 M02 local income is 1000, so when running report from FY23 M03 - FY23 M04, 
+      // it will be FY23 M04 - FY23 M02
+      if (start && end) {
+         const startVals = start.split(" ");
+         let fy = parseInt(startVals[0].replace("FY", ""));
+         let m = parseInt(startVals[1].replace("M", ""));
+
+         if (m == 1) {
+            fy -= 1;
+            m = 12;
+         }
+         else {
+            m -= 1;
+         }
+
+         start = `FY${fy} M${m > 9 ? m : `0${m}`}`;
+      }
+
+      const fyConds = {
+         glue: "or",
+         rules: [],
+      };
       if (start) {
-         where.rules.push({
+         fyConds.rules.push({
             key: "FY Period",
-            rule: "greater_or_equal",
+            rule: "contains",
             value: start,
          });
       }
 
       if (end) {
-         where.rules.push({
+         fyConds.rules.push({
             key: "FY Period",
-            rule: "less_or_equal",
+            rule: "contains",
             value: end,
          });
       }
+
+      where.rules.push(fyConds);
 
       let records = [];
       if (Teams && start && where?.rules?.length) {
@@ -244,10 +269,22 @@ module.exports = {
          );
       }
 
+      let start_records = [];
+      if (end) {
+         start_records = records.filter((rec) => rec["FY Period"] == start);
+         records = records.filter((rec) => rec["FY Period"] == end);
+      }
+
       data.categories.forEach((cat) => {
          let catSum = 0;
          cat.sub.forEach((sub) => {
             sub.sum = categorySum(sub.id, records);
+
+            if (end) {
+               let startValueSum = categorySum(sub.id, start_records);
+               sub.sum -= startValueSum;
+            }
+
             catSum = (100 * sub.sum + 100 * catSum) / 100;
          });
          cat.sum = catSum.toFixed(2);
