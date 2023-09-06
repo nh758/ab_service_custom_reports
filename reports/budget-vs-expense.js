@@ -35,6 +35,7 @@ const FIELD_IDS = {
    PROJECT_NAME: "3adf1639-fbaf-44f9-9249-d2800506642c",
 
    myRCsTeam: "ae4ace97-f70c-4132-8fa0-1a0b1a9c7859",
+   MCC_Name: "eb0f60c3-55cf-40b1-8408-64501f41fa71",
 };
 
 const FilterOutRC = [
@@ -187,7 +188,7 @@ async function getActualExpense(modelTeamJEArchive, team, rc, year) {
 }
 
 module.exports = {
-   prepareData: async (AB, { team, rc, fyYear }, req) => {
+   prepareData: async (AB, { team, mcc, rc, fyYear }, req) => {
       const data = {
          current_path: __dirname,
          title: {
@@ -198,6 +199,7 @@ module.exports = {
       };
       // get our passed params
       data.team = team ? team : undefined;
+      data.mcc = mcc ? mcc: undefined;
       data.rc = rc ? rc : undefined;
       data.fyYear = fyYear;
       fyYear = (fyYear || `FY${new Date().getFullYear()}`).toString();
@@ -210,6 +212,23 @@ module.exports = {
       const modelTeamJEArchive = queryTeamJEArchive.model();
       const yearObj = AB.objectByID(OBJECT_IDS.FiscalYear).model();
       const projectBudgetObj = AB.objectByID(OBJECT_IDS.ProjectBudget).model();
+      const mccField = AB.queryByID(QUERY_IDS.myRCs).fieldByID(FIELD_IDS.MCC_Name);
+
+      const myRCsCond = [];
+      if (team) {
+         myRCsCond.push({
+            key: FIELD_IDS.myRCsTeam,
+            rule: "equals",
+            value: team,
+         });
+      }
+      if (mcc) {
+         myRCsCond.push({
+            key: FIELD_IDS.MCC_Name,
+            rule: "equals",
+            value: mcc,
+         });
+      }
 
       // Load Data
       const [teamsArray, rcs, yearArray, budgets, expenses] = await Promise.all([
@@ -226,15 +245,7 @@ module.exports = {
             {
                where: {
                   glue: "and",
-                  rules: team
-                     ? [
-                        {
-                           key: FIELD_IDS.myRCsTeam,
-                           rule: "equals",
-                           value: team,
-                        },
-                     ]
-                     : [],
+                  rules: myRCsCond
                },
                populate: false,
             },
@@ -258,6 +269,14 @@ module.exports = {
          // Remove duplicated Team
          .filter(function (team, ft, tl) {
             return tl.indexOf(team) == ft;
+         })
+         .sort(sort);
+
+      data.mccOptions = (rcs ?? [])
+         .map((t) => t[`${mccField.alias}.${mccField.columnName}`])
+         // Remove duplicated RC
+         .filter(function (rc, pos, self) {
+            return self.indexOf(rc) == pos;
          })
          .sort(sort);
 

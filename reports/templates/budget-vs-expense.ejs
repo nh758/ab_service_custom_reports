@@ -14,10 +14,11 @@
    <script type="text/javascript">
       function refresh() {
          const teamVal = document.getElementById("teamSelect").value,
+            mccVal = document.getElementById("mccSelect").value,
             rcVal = document.getElementById("rcSelect").value,
             yearVal = document.getElementById("yearSelect").value;
 
-         location.href = `/report/budget-vs-expense?team=${teamVal}&rc=${rcVal}&fyYear=${yearVal}`;
+         location.href = `/report/budget-vs-expense?team=${teamVal}&mcc=${mccVal}&rc=${rcVal}&fyYear=${yearVal}`;
       }
    </script>
    <center>
@@ -31,6 +32,14 @@
             <% for(i=0; i < teamOptions.length; i++) { %>
                <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%=
                            teamOptions[i] %>
+               </option>
+               <% } %>
+         </select>
+         MCC :
+         <select id="mccSelect" onchange="refresh()" class="option">
+            <option value="">[All]</option>
+            <% for(i=0; i < mccOptions.length; i++) { %>
+               <option <% if (mcc==mccOptions[i]) { %> selected <% } %> value="<%= mccOptions[i] %>"><%= mccOptions[i] %>
                </option>
                <% } %>
          </select>

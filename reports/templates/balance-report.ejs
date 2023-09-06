@@ -12,9 +12,10 @@
     </style>
     <script type="text/javascript">
         function refresh() {
+            let mccVal = document.getElementById("mcc").value;
             let rcVal = document.getElementById("rcType").value || "team";
             let fyVal = document.getElementById("fySelect").value;
-            window.location.href = `/report/balance-report?rc=${rcVal}&fyper=${fyVal}`;
+            window.location.href = `/report/balance-report?mcc=${mccVal}&rc=${rcVal}&fyper=${fyVal}`;
         }
     </script>
     <center>
@@ -28,6 +29,17 @@
             <select class="selector" id="rcType" onchange="refresh()">
                 <option value="team" <% if (rcType=="team" ) { %> selected <% } %>>My Team</option>
                 <option value="qx" <% if (rcType=="qx" ) { %> selected <% } %>>My QX</option>
+            </select>
+            <span style="font-weight: normal;">
+                MCC:
+            </span>
+            <select class="selector" id="mcc" onchange="refresh()">
+                <option>[All]</option>
+                <% for(var i=0; i < mccOptions.length; i++) { %>
+                    <option <% if (mcc==mccOptions[i]) { %> selected <% } %> value="<%= mccOptions[i] %>">
+                                <%=mccOptions[i] %>
+                    </option>
+                    <% } %>
             </select>
             <span style="font-weight: normal;">
                 FY Period:
