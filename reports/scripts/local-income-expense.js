@@ -75,7 +75,7 @@ async function ui() {
                      {
                         id: ids.teamViewId,
                         view: "multiselect",
-                        placeholder: "[Select]",
+                        placeholder: "[All]",
                         label: "Ministry Team:",
                         labelWidth: 110,
                         width: 300,
@@ -207,21 +207,13 @@ const _defineRcOptions = async () => {
    const myRCs = AB.queryByID(ids.myRCsQueryId);
    const myRCsModel = myRCs.model();
    const mccField = myRCs.fieldByID(ids.mccFieldId);
-   const teamCond = {
-      glue: "or",
-      rules: [],
-   };
+   const teamList = [];
 
    (Teams || "").split(",").forEach((team) => {
-      teamCond.rules.push({
-         key: ids.myRCsTeamFieldId,
-         rule: "equals",
-         value: team,
-      });
+      teamList.push(team);
    });
 
    let rcs = await myRCsModel.findAll({
-      where: teamCond,
       populate: false,
    });
    $$(reportElementId()).__mccRcs = ((rcs && rcs.data) || []).map((item) => {
@@ -231,7 +223,7 @@ const _defineRcOptions = async () => {
       };
    });
 
-   _defineOptions(ids.mccViewId, $$(reportElementId()).__mccRcs, "mcc");
+   _defineOptions(ids.mccViewId, rcs.data || [], mccField.columnName);
    _defineOptions(ids.rcViewId, $$(reportElementId()).__mccRcs, "rc");
 
    $rc.unblockEvent();

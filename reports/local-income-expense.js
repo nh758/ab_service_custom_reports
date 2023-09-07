@@ -235,7 +235,7 @@ module.exports = {
       where.rules.push(fyConds);
 
       let records = [];
-      if (Teams && start && end && where?.rules?.length) {
+      if (start && end && where?.rules?.length) {
          records = await balanceObj.findAll(
             {
                where: where,
