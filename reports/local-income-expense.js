@@ -145,13 +145,13 @@ module.exports = {
          return match;
       }
 
-      function categorySum(category, balances) {
+      function categorySum(category, balances, propertyName) {
          const filtered = balances.filter((bal) =>
             accountInCategory(bal["COA Num"], category)
          );
          if (filtered.length > 0) {
             return filtered
-               .map((i) => i["Running Balance"])
+               .map((i) => i[propertyName])
                .reduce((a, b) => (100 * a + 100 * b) / 100);
          } else {
             return 0;
@@ -216,49 +216,26 @@ module.exports = {
          });
       }
 
-      // for example, in the old report, when I run report with FY23 M04, the local income is 5141, 
-      // and FY23 M02 local income is 1000, so when running report from FY23 M03 - FY23 M04, 
-      // it will be FY23 M04 - FY23 M02
-      if (start && end) {
-         const startVals = start.split(" ");
-         let fy = parseInt(startVals[0].replace("FY", ""));
-         let m = parseInt(startVals[1].replace("M", ""));
-
-         if (m == 1) {
-            fy -= 1;
-            m = 12;
-         }
-         else {
-            m -= 1;
-         }
-
-         start = `FY${fy} M${m > 9 ? m : `0${m}`}`;
-      }
-
+      const fyValues = [start, end].sort();
       const fyConds = {
          glue: "or",
-         rules: [],
+         rules: [
+            {
+               key: "FY Period",
+               rule: "contains",
+               value: fyValues[0],
+            },
+            {
+               key: "FY Period",
+               rule: "contains",
+               value: fyValues[1],
+            }
+         ],
       };
-      if (start) {
-         fyConds.rules.push({
-            key: "FY Period",
-            rule: "contains",
-            value: start,
-         });
-      }
-
-      if (end) {
-         fyConds.rules.push({
-            key: "FY Period",
-            rule: "contains",
-            value: end,
-         });
-      }
-
       where.rules.push(fyConds);
 
       let records = [];
-      if (Teams && start && where?.rules?.length) {
+      if (Teams && start && end && where?.rules?.length) {
          records = await balanceObj.findAll(
             {
                where: where,
@@ -269,21 +246,15 @@ module.exports = {
          );
       }
 
-      let start_records = [];
-      if (end) {
-         start_records = records.filter((rec) => rec["FY Period"] == start);
-         records = records.filter((rec) => rec["FY Period"] == end);
-      }
+      const running_records = records.filter((rec) => rec["FY Period"] == fyValues[1]);
+      const starting_records = records.filter((rec) => rec["FY Period"] == fyValues[0]);
 
       data.categories.forEach((cat) => {
          let catSum = 0;
          cat.sub.forEach((sub) => {
-            sub.sum = categorySum(sub.id, records);
-
-            if (end) {
-               let startValueSum = categorySum(sub.id, start_records);
-               sub.sum -= startValueSum;
-            }
+            let runningSum = categorySum(sub.id, running_records, "Running Balance");
+            let startingSum = categorySum(sub.id, starting_records, "Starting Balance");
+            sub.sum = runningSum - startingSum;
 
             catSum = (100 * sub.sum + 100 * catSum) / 100;
          });

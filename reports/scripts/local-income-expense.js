@@ -133,8 +133,7 @@ function _attachEvents() {
       const startVal = $start.getValue();
       const endVal = $end.getValue();
 
-      if (startVal < endVal) refresh();
-      else $end.setValue($start.getValue());
+      if (startVal && endVal) refresh();
    });
    $end.__onChange = $end.attachEvent("onChange", () => {
       refresh();
