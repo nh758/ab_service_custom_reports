@@ -1,0 +1,122 @@
+<style>
+   body {
+      margin: 0;
+      padding: 0;
+   }
+
+   header {
+      text-align: center;
+      padding: 10px;
+   }
+
+   .logo {
+      position: absolute;
+      height: 80px;
+      margin-left: 10px;
+      margin-top: -20px; 
+   }
+
+   main {
+      margin-top: 20px;
+      margin-bottom: 0px;
+      padding: 0 20px;
+   }
+
+   table {
+      border-collapse: collapse;
+   }
+
+   tr:hover {
+      background: rgba(0, 0, 0, 0.05);
+   }
+
+   td {
+      border-bottom: 1px solid lightgray;
+   }
+
+   .content {
+      max-height: calc(100vh - 200px);
+      overflow-y: auto;
+   }
+
+   footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 2.5px 10px;
+      background-color: #f0f0f0;
+      border-top: 1px solid #000;
+      page-break-before: always;
+   }
+
+   .footer-left {
+      width: 50%;
+      padding: 5px;
+      color: #606060;
+      text-align: right;
+      text-decoration-color: "dgray";
+      font-size: 12px;
+      font-weight: 100;
+      text-align: left;
+   }
+
+   .footer-right {
+      width: 50%;
+      padding: 5px;
+      color: #606060;
+      text-align: right;
+      text-decoration-color: "dgray";
+      font-size: 12px;
+      font-weight: 100;
+      text-align: right;
+   }
+
+   @media print {
+      .content {
+         overflow-y: visible;
+      }
+
+      footer {
+         padding: 0px 10px;
+      }
+
+      @page {
+         margin: 1cm;
+      }
+   }
+</style>
+<header>
+   <h1>Official Session (No. <%= number %>) <img class="logo" src="<%= logo %>" /></h1>
+ </header>
+ <main>
+   <div class="content">
+      <table>
+         <tr><td class="left">Date:</td><td class="right"><%= date.toLocaleDateString('en-US') %></td></tr>
+         <tr><td class="left">Providers:</td><td class="right"><%= providers.map((e) => `${e["First NAme"]} ${e["Last Name"]}`).join(", ") %></td></tr>
+         <tr><td class="left">Clients Present:</td><td class="right"><%= clientsPresent.map((e) => `${e["First Name"]} ${e["Last Name"]}`).join(", ") %></td></tr>
+         <tr><td class="left">Other Participants:</td><td class="right"><%= otherParticipants %></td></tr>
+         <% for (const key in sessionNote) { %>
+         <tr><td class="left"><%= key %>:</td><td class="right"><%= Array.isArray(sessionNote[key]) ? sessionNote[key].map((e) => e.text).join(", "): sessionNote[key] %></td></tr>
+         <% } %>
+      </table>
+   </div>
+ </main>
+ <footer>
+   <div class="footer-left">
+      <p>
+         <%= entity["Address L1"] %><br />
+         <%= entity["Address L2"] %><br />
+         <%= entity["Address L3"] %>
+      </p>
+   </div>
+   <div class="footer-right">
+      <p>
+         <%= entity["Phone Thai"] %> (Thailand)<br />
+         <%= entity["Phone International"] %> (International)<br />
+         <%= entity["Finance Email"] %>
+      </p>
+   </div>
+ </footer>

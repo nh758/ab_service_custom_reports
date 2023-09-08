@@ -9,24 +9,21 @@ const path = require("path");
 module.exports = {
    // GET: /report/local-income-expense
    // get the local and expense income and calculate the sums
-   prepareData: async (AB, { team, rc, fyYear, fyMonth }, req) => {
+   prepareData: async (AB, { Teams, RCs, start, end }, req) => {
       const ids = {
          myTeamsQueryId: "62a0c464-1e67-4cfb-9592-a7c5ed9db45c",
          myRCsQueryId: "241a977c-7748-420d-9dcb-eff53e66a43f",
          myRCsTeamFieldId: "ae4ace97-f70c-4132-8fa0-1a0b1a9c7859",
          balanceObjId: "bb9aaf02-3265-4b8c-9d9a-c0b447c2d804",
-         fiscalMonthObjId: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
-         // teamsObjId: "138ff828-4579-412b-8b5b-98542d7aa152",
-         yearObjId: "6c398e8f-ddde-4e26-b142-353de5b16397",
-         rcObjectID: "c3aae079-d36d-489f-ae1e-a6289536cb1a",
       };
+
       // Our data object
       var data = {
          title: {
             en: "Local Income vs Expense",
             zh: "本地收入VS 支出",
          },
-         rc: rc,
+         rc: RCs,
          total: {
             en: "Total",
             zh: "总额",
@@ -136,16 +133,9 @@ module.exports = {
          ],
       };
 
-      // get our passed params
-      data.team = team ? team : undefined;
-      data.rc = rc ? rc : undefined;
-      data.fyYear = fyYear ? fyYear : undefined;
-      data.fyMonth = fyMonth ? fyMonth : undefined;
-      // data.fiscalPeriodstart
-
       function accountInCategory(account, category) {
-         const accountDigits = account.toString().split("");
-         const categoryDigits = category.toString().split("");
+         const accountDigits = account?.toString().split("") ?? [];
+         const categoryDigits = category?.toString().split("") ?? [];
          let match = true;
          categoryDigits.forEach((digit, i) => {
             if (digit !== accountDigits[i]) {
@@ -155,13 +145,13 @@ module.exports = {
          return match;
       }
 
-      function categorySum(category, balances) {
+      function categorySum(category, balances, propertyName) {
          const filtered = balances.filter((bal) =>
             accountInCategory(bal["COA Num"], category)
          );
          if (filtered.length > 0) {
             return filtered
-               .map((i) => i["Running Balance"])
+               .map((i) => i[propertyName])
                .reduce((a, b) => (100 * a + 100 * b) / 100);
          } else {
             return 0;
@@ -195,121 +185,6 @@ module.exports = {
       const myTeams = AB.queryByID(ids.myTeamsQueryId).model();
       const myRCs = AB.queryByID(ids.myRCsQueryId).model();
       const balanceObj = AB.objectByID(ids.balanceObjId).model();
-      // const fiscalMonthObj = AB.objectByID(ids.fiscalMonthObjId).model();
-      // const teamsObj = AB.objectByID(ids.teamsObjId).model();
-      const yearObj = AB.objectByID(ids.yearObjId).model();
-      // const RcObj = AB.objectByID(ids.rcObjectID).model();
-
-      // Load Options
-      // const [teamsArray, rcs, yearArray, fiscalMonthsArray] = await Promise.all(
-      const [teamsArray, rcs, yearArray] = await Promise.all(
-         [
-            // return teams
-            myTeams.findAll(
-               {
-                  populate: false,
-               },
-               { username: req._user.username },
-               AB.req
-            ),
-
-            // return myRCs
-            myRCs.findAll(
-               {
-                  where: {
-                      glue: "and",
-                      rules: team ? [
-                        { 
-                           key: ids.myRCsTeamFieldId,
-                           rule: "equals",
-                           value: team
-                        }
-                      ] : [],
-                  },
-                  populate: false,
-               },
-               { username: req._user.username },
-               AB.req
-            ),
-            // return year
-            yearObj.findAll(
-               {
-                  populate: false,
-               },
-               { username: req._user.username },
-               AB.req
-            ),
-
-            // fiscalMonthObj // .modelAPI()
-            //    .findAll(
-            //       {
-            //          where: {
-            //             glue: "and",
-            //             rules: [
-            //                {
-            //                   key: "Status",
-            //                   rule: "equals",
-            //                   value: "1592549786113",
-            //                },
-            //             ],
-            //          },
-            //          populate: false,
-            //          sort: [
-            //             {
-            //                key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-            //                dir: "DESC",
-            //             },
-            //          ],
-            //          limit: 12,
-            //       },
-            //       { username: req._user.username },
-            //       AB.req
-            //    ),
-         ]
-      );
-
-      data.teamOptions = (teamsArray ?? [])
-         .map((t) => t["BASE_OBJECT.Name"])
-         .sort(sort);
-
-      data.rcOptions = (rcs ?? [])
-         .map((t) => t["BASE_OBJECT.RC Name"])
-         .sort(sort);
-
-      data.yearOptions = (yearArray ?? [])
-         .map((t) => t["FYear"])
-         .sort(sort);
-
-      data.monthOptions = getMonthList(AB);
-
-      // data.year = year || fiscalMonthsArray[0]["FY Per"];
-      // let fiscalPeriodOptions = [];
-      // let i = 0;
-      // let currIndex = 0;
-      // fiscalMonthsArray.forEach((fp) => {
-      //    var dateObj = new Date(fp["End"]);
-      //    var month = dateObj.getUTCMonth() + 1; //months from 1-12
-      //    var year = dateObj.getUTCFullYear();
-      //    var prettyDate = year + "/" + (month > 9 ? month : "0" + month);
-      //    var option = { id: fp["FY Per"], label: prettyDate };
-      //    if (year == fp["FY Per"]) {
-      //       option.selected = true;
-      //       currIndex = i;
-      //    }
-      //    fiscalPeriodOptions.push(option);
-      //    i++;
-      // });
-      // data.fiscalPeriodOptions = fiscalPeriodOptions;
-      // var dateObj = new Date(fiscalMonthsArray[currIndex]["End"]);
-      // var month = dateObj.getUTCMonth() + 1; //months from 1-12
-      // var year = dateObj.getUTCFullYear();
-      // data.fiscalPeriodend =
-      //    year + "/" + (month > 9 ? month : "0" + month);
-      // let startYear = year;
-      // if (month < 7) {
-      //    startYear = year - 1;
-      // }
-      // data.fiscalPeriodstart = startYear + "/07";
 
       // Load Report Data
       const where = {
@@ -317,48 +192,98 @@ module.exports = {
          rules: [],
       };
 
-      // Select a specified RC
-      if (rc) {
-         where.rules.push({
-            key: "RC Code",
-            rule: "equals",
-            value: rc,
+      // Select specified RCs
+      if (RCs) {
+         const rcCond = {
+            glue: "or",
+            rules: [],
+         };
+
+         RCs.split(",").forEach((rcVal) => {
+            if (!rcVal) return;
+            rcCond.rules.push({
+               key: "RC Code",
+               rule: "equals",
+               value: rcVal.trim(),
+            });
          });
+
+         where.rules.push(rcCond);
       }
-      // All of RC of a selected TEAM
+      // All of RC of selected TEAMs
       else {
+         const teamCond = {
+            glue: "or",
+            rules: [],
+         };
+
+         (Teams ?? "").split(",").forEach((team) => {
+            teamCond.rules.push({
+               key: ids.myRCsTeamFieldId,
+               rule: "equals",
+               value: team,
+            });
+         });
+
+         const rcs = (await myRCs.findAll(
+            {
+               where: teamCond,
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         )).map((t) => t["BASE_OBJECT.RC Name"]);
+
          where.rules.push({
             key: "RC Code",
             rule: "in",
-            value: data.rcOptions,
+            value: rcs,
          });
       }
 
-      if (fyMonth) {
-         const monthJoin = `${fyYear ?? new Date().getFullYear()}/${fyMonth}`;
-         where.rules.push({
-            key: "FY Period",
-            rule: "contains",
-            value: monthJoin,
-         });
+      const fyValues = [start, end].sort();
+      const fyConds = {
+         glue: "or",
+         rules: [
+            {
+               key: "FY Period",
+               rule: "contains",
+               value: fyValues[0],
+            },
+            {
+               key: "FY Period",
+               rule: "contains",
+               value: fyValues[1],
+            }
+         ],
+      };
+      where.rules.push(fyConds);
+
+      let records = [];
+      if (start && end && where?.rules?.length) {
+         records = await balanceObj.findAll(
+            {
+               where: where,
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         );
       }
 
-      let records = await balanceObj.findAll(
-         {
-            where: where,
-            populate: false,
-         },
-         { username: req._user.username },
-         AB.req
-      );
+      const running_records = records.filter((rec) => rec["FY Period"] == fyValues[1]);
+      const starting_records = records.filter((rec) => rec["FY Period"] == fyValues[0]);
 
       data.categories.forEach((cat) => {
          let catSum = 0;
          cat.sub.forEach((sub) => {
-            sub.sum = categorySum(sub.id, records);
+            let runningSum = categorySum(sub.id, running_records, "Running Balance");
+            let startingSum = categorySum(sub.id, starting_records, "Starting Balance");
+            sub.sum = runningSum - startingSum;
+
             catSum = (100 * sub.sum + 100 * catSum) / 100;
          });
-         cat.sum = catSum;
+         cat.sum = catSum.toFixed(2);
       });
 
       // Local Income / Expenses
@@ -370,7 +295,7 @@ module.exports = {
       // if either number is zero, percentage won't calculate correctly
       if (expensesSum == 0) {
          // 100 of expenses are covered by local
-         data.localPercentage = 100;
+         data.localPercentage = 0;
       } else if (localIncomeSum == 0) {
          // there is no local income, so so no expenses are covered
          data.localPercentage = 0;
