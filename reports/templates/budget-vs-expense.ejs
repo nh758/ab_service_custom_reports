@@ -28,7 +28,7 @@
       <h2>
          Ministry Team :
          <select id="teamSelect" onchange="refresh()" class="option">
-            <option value="">[Select]</option>
+            <option value="">[All]</option>
             <% for(i=0; i < teamOptions.length; i++) { %>
                <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%=
                            teamOptions[i] %>

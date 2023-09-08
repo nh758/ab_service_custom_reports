@@ -65,17 +65,12 @@ function sort(a, b) {
    return (a ?? "").toLowerCase().localeCompare((b ?? "").toLowerCase());
 }
 
-async function getProjectBudgets(modelProjectBudget, team, rc, year) {
-   if (!team) return [];
+async function getProjectBudgets(modelProjectBudget, team, rcs, year) {
+   if (!team && rcs?.length < 1) return [];
 
    const condProject = {
       glue: "and",
       rules: [
-         {
-            key: FIELD_IDS.BUDGET_TEAM,
-            rule: "equals",
-            value: team,
-         },
          {
             key: FIELD_IDS.BUDGET_RC,
             rule: "not_in",
@@ -89,12 +84,28 @@ async function getProjectBudgets(modelProjectBudget, team, rc, year) {
       ],
    };
 
-   if (rc) {
+   if (team) {
       condProject.rules.push({
-         key: FIELD_IDS.BUDGET_RC,
+         key: FIELD_IDS.BUDGET_TEAM,
          rule: "equals",
-         value: rc,
+         value: team,
       });
+   }
+   if (rcs.length) {
+      const rcCond = {
+         glue: "or",
+         rules: [],
+      };
+
+      rcs.forEach((rc) => {
+         rcCond.rules.push({
+            key: FIELD_IDS.BUDGET_RC,
+            rule: "equals",
+            value: rc,
+         });
+      });
+
+      condProject.rules.push(rcCond);
    }
    if (year) {
       condProject.rules.push({
@@ -114,17 +125,12 @@ async function getProjectBudgets(modelProjectBudget, team, rc, year) {
    });
 }
 
-async function getActualExpense(modelTeamJEArchive, team, rc, year) {
-   if (!team) return [];
+async function getActualExpense(modelTeamJEArchive, team, rcs, year) {
+   if (!team && rcs?.length < 1) return [];
 
    const cond = {
       glue: "and",
       rules: [
-         {
-            key: FIELD_IDS.EXPENSE_TEAM,
-            rule: "equals",
-            value: team,
-         },
          {
             key: FIELD_IDS.EXPENSE_RC,
             rule: "not_in",
@@ -169,12 +175,26 @@ async function getActualExpense(modelTeamJEArchive, team, rc, year) {
       ],
    };
 
-   if (rc) {
+   if (team) {
       cond.rules.push({
-         key: FIELD_IDS.EXPENSE_RC,
+         key: FIELD_IDS.EXPENSE_TEAM,
          rule: "equals",
-         value: rc,
+         value: team,
       });
+   }
+   if (rcs.length) {
+      const rcCond = {
+         glue: "or",
+         rules: [],
+      };
+      rcs.forEach((rc) => {
+         rcCond.rules.push({
+            key: FIELD_IDS.EXPENSE_RC,
+            rule: "equals",
+            value: rc,
+         });
+      });
+      cond.rules.push(rcCond);
    }
 
    return await modelTeamJEArchive.findAll({
@@ -212,26 +232,11 @@ module.exports = {
       const modelTeamJEArchive = queryTeamJEArchive.model();
       const yearObj = AB.objectByID(OBJECT_IDS.FiscalYear).model();
       const projectBudgetObj = AB.objectByID(OBJECT_IDS.ProjectBudget).model();
+      const teamField = AB.queryByID(QUERY_IDS.myRCs).fieldByID(FIELD_IDS.myRCsTeam);
       const mccField = AB.queryByID(QUERY_IDS.myRCs).fieldByID(FIELD_IDS.MCC_Name);
 
-      const myRCsCond = [];
-      if (team) {
-         myRCsCond.push({
-            key: FIELD_IDS.myRCsTeam,
-            rule: "equals",
-            value: team,
-         });
-      }
-      if (mcc) {
-         myRCsCond.push({
-            key: FIELD_IDS.MCC_Name,
-            rule: "equals",
-            value: mcc,
-         });
-      }
-
       // Load Data
-      const [teamsArray, rcs, yearArray, budgets, expenses] = await Promise.all([
+      const [teamsArray, rcs, yearArray] = await Promise.all([
          // Return teams
          myTeams.findAll(
             {
@@ -243,10 +248,6 @@ module.exports = {
          // Return myRCs
          myRCs.findAll(
             {
-               where: {
-                  glue: "and",
-                  rules: myRCsCond
-               },
                populate: false,
             },
             { username: req._user.username },
@@ -260,8 +261,19 @@ module.exports = {
             { username: req._user.username },
             AB.req
          ),
-         getProjectBudgets(projectBudgetObj, team, rc, fyYear),
-         getActualExpense(modelTeamJEArchive, team, rc, fyYear),
+      ]);
+
+      const selectedRcs = [rc]
+         .concat(
+            rcs
+               .filter((r) => mcc && r[`${mccField.alias}.${mccField.columnName}`] == mcc)
+               .map((r) => r["BASE_OBJECT.RC Name"])
+         )
+         .filter((r) => r);
+
+      const [budgets, expenses] = await Promise.all([
+         getProjectBudgets(projectBudgetObj, team, selectedRcs, fyYear),
+         getActualExpense(modelTeamJEArchive, team, selectedRcs, fyYear),
       ]);
 
       data.teamOptions = (teamsArray ?? [])
@@ -281,6 +293,7 @@ module.exports = {
          .sort(sort);
 
       data.rcOptions = (rcs ?? [])
+         .filter(((t) => !team || t[`${teamField.alias}.${teamField.columnName}`] == team))
          .map((t) => t["BASE_OBJECT.RC Name"])
          // Remove duplicated RC
          .filter(function (rc, pos, self) {
