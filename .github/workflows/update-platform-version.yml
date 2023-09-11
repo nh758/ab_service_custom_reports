@@ -54,7 +54,7 @@ jobs:
   
   call-open-pr-major:
     name: Major Change
-    needs: [ call-update-sub, call-run-cy-test ]
+    needs: [ call-update-sub ]
     if: ${{ github.event.client_payload.type == 'major' }}
     uses: digi-serve/.github/.github/workflows/open-pr.yml@nh/platform-workflows
     with: 
