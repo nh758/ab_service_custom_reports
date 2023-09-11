@@ -9,7 +9,7 @@ env:
 jobs:
   call-update-sub:
     name: Update
-    uses: digi-serve/.github/.github/workflows/update-sub-repo.yml@master
+    uses: digi-serve/.github/.github/workflows/update-sub-repo.yml@nh/platform-workflows
     with:
       repository: digi-serve/appbuilder_platform_service
       short_name: platform
@@ -36,7 +36,7 @@ jobs:
   call-merge-release:
     name: Merge
     needs: [ call-update-sub, call-bump-version ]
-    uses: digi-serve/.github/.github/workflows/branch-merge-release.yml@master
+    uses: digi-serve/.github/.github/workflows/branch-merge-release.yml@nh/platform-workflows
     with: 
       branch: ${{ needs.call-update-sub.outputs.branch }}
       tag: v${{ needs.call-bump-version.outputs.new_version }}
@@ -46,7 +46,7 @@ jobs:
     name: Create a PR
     needs: [ call-update-sub, call-run-cy-test ]
     if: ${{ failure() && github.event.client_payload.type != 'major' }}
-    uses: digi-serve/.github/.github/workflows/open-pr.yml@master
+    uses: digi-serve/.github/.github/workflows/open-pr.yml@nh/platform-workflows
     with: 
       branch: ${{ needs.call-update-sub.outputs.branch }}
       title: Update platform to ${VERSION} (from GitHub Actions Workflow)
@@ -57,7 +57,7 @@ jobs:
     name: Create a PR
     needs: [ call-update-sub, call-run-cy-test ]
     if: ${{ github.event.client_payload.type == 'major' }}
-    uses: digi-serve/.github/.github/workflows/open-pr.yml@master
+    uses: digi-serve/.github/.github/workflows/open-pr.yml@nh/platform-workflows
     with: 
       branch: ${{ needs.call-update-sub.outputs.branch }}
       title: Update platform to ${VERSION} (from GitHub Actions Workflow)
