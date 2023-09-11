@@ -26,7 +26,7 @@ jobs:
     name: Version
     if: ${{ github.event.client_payload.type == 'minor' || github.event.client_payload.type == 'patch' }}
     needs: [ call-update-sub, call-run-cy-test ]
-    uses: digi-serve/.github/.github/workflows/bump-version.yml@master
+    uses: digi-serve/.github/.github/workflows/bump-version.yml@nh/platform-workflows
     with:
       ref: ${{ needs.call-update-sub.outputs.branch }}
       # Consider platform version updates as patch
