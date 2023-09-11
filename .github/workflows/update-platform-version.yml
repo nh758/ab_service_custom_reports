@@ -39,7 +39,7 @@ jobs:
     with: 
       branch: ${{ needs.call-update-sub.outputs.branch }}
       tag: v${{ needs.call-bump-version.outputs.new_version }}
-      body: "- platform updated to ${{ github.event.client_payload.version }}"
+      body: "- platform updated to v${{ github.event.client_payload.version }}"
 
   call-open-pr-fail:
     name: Tests Failed
