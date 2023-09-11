@@ -46,7 +46,7 @@ jobs:
     uses: digi-serve/.github/.github/workflows/open-pr.yml@master
     with: 
       branch: ${{ needs.call-update-sub.outputs.branch }}
-      title: Update platform to ${VERSION} (from GitHub Actions Workflow)
+      title: Update platform to ${{ github.event.client_payload.version }} (from GitHub Actions Workflow)
       body: Automatic updated failed. Check the [E2E tests](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
       release_notes: "- platform updated to ${{ github.event.client_payload.version }}"
   
@@ -57,6 +57,6 @@ jobs:
     uses: digi-serve/.github/.github/workflows/open-pr.yml@master
     with: 
       branch: ${{ needs.call-update-sub.outputs.branch }}
-      title: Update platform to ${VERSION} (from GitHub Actions Workflow)
+      title: Update platform to ${{ github.event.client_payload.version }} (from GitHub Actions Workflow)
       body: This is a major platform update. Please review and merge when ready.
       release_notes: "- platform updated to ${{ github.event.client_payload.version }}"
