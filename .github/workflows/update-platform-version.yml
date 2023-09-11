@@ -1,0 +1,65 @@
+name: "Update Platform Version"
+run-name: Update ab_platform_service to ${{ github.event.client_payload.version }}
+on:
+  repository_dispatch:
+    type: [platform_new_version]
+env:
+  VERSION: ${{ github.event.client_payload.version }}
+  TYPE: ${{ github.event.client_payload.type }}
+jobs:
+  call-update-sub:
+    name: Update
+    uses: digi-serve/.github/.github/workflows/update-sub-repo.yml@master
+    with:
+      repository: digi-serve/appbuilder_platform_service
+      short_name: platform
+      folder: AppBuilder
+      version: ${{ env.VERSION }}
+
+  call-run-cy-test:
+    name: Test
+    needs: call-update-sub
+    uses: digi-serve/.github/.github/workflows/cy-tests.yml@master
+    with:
+      ref: ${{ needs.call-update-sub.outputs.branch }}
+
+  call-bump-version:
+    name: Version
+    if: ${{ github.event.client_payload.type == 'minor' || github.event.client_payload.type == 'patch' }}
+    needs: [ call-update-sub, call-run-cy-test ]
+    uses: digi-serve/.github/.github/workflows/bump-version.yml@master
+    with:
+      ref: ${{ needs.call-update-sub.outputs.branch }}
+      # Consider platform version updates as patch
+      type: patch
+
+  call-merge-release:
+    name: Merge
+    needs: [ call-update-sub, call-bump-version ]
+    uses: digi-serve/.github/.github/workflows/branch-merge-release.yml@master
+    with: 
+      branch: ${{ needs.call-update-sub.outputs.branch }}
+      tag: v${{ needs.call-bump-version.outputs.new_version }}
+      body: "- platform updated to ${{ env.VERSION }}"
+
+  call-open-pr-fail:
+    name: Create a PR
+    needs: [ call-update-sub, call-run-cy-test ]
+    if: ${{ failure() && github.event.client_payload.type != 'major' }}
+    uses: digi-serve/.github/.github/workflows/open-pr.yml@master
+    with: 
+      branch: ${{ needs.call-update-sub.outputs.branch }}
+      title: Update platform to ${VERSION} (from GitHub Actions Workflow)
+      body: Automatic updated failed. Check the [E2E tests](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+      release_notes: "- platform updated to ${{ env.VERSION }}"
+  
+  call-open-pr-fail:
+    name: Create a PR
+    needs: [ call-update-sub, call-run-cy-test ]
+    if: ${{ github.event.client_payload.type == 'major' }}
+    uses: digi-serve/.github/.github/workflows/open-pr.yml@master
+    with: 
+      branch: ${{ needs.call-update-sub.outputs.branch }}
+      title: Update platform to ${VERSION} (from GitHub Actions Workflow)
+      body: This is a major platform update. Please review and merge when ready.
+      release_notes: "- platform updated to ${{ env.VERSION }}"
