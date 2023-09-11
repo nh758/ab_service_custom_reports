@@ -1,497 +1,377 @@
+/**
+ *Budget VS Expense Report
+ *
+ *
+ */
 const fs = require("fs");
-const { result, head, startsWith } = require("lodash");
 const path = require("path");
+const utils = require("./_utils");
 
 const OBJECT_IDS = {
-   FY_MONTH: "1d63c6ac-011a-4ffd-ae15-97e5e43f2b3f",
+   FiscalYear: "6c398e8f-ddde-4e26-b142-353de5b16397",
+   ProjectBudget: "839ac470-8f77-420c-9a30-aeaf0a9f509c",
 };
 
-function valueFormat(number) {
-   if (number == null) return;
+const QUERY_IDS = {
+   myTeams: "62a0c464-1e67-4cfb-9592-a7c5ed9db45c",
+   myRCs: "241a977c-7748-420d-9dcb-eff53e66a43f",
+   teamJEArchive: "1bcd1217-7116-4e83-b6d1-da81b36a38cb",
+};
 
-   return number.toLocaleString("en-US", { minimumFractionDigits: 0 });
+const FIELD_IDS = {
+   BUDGET_RC: "9bd86c7d-102d-4aa5-ae45-a7bcc19e7192",
+   BUDGET_TEAM: "d35ba507-3f93-4eca-8046-b16ea85a2433",
+   BUDGET_YEAR: "0053696c-b597-4871-a40b-8360ac63d2b6",
+   BUDGET_TOTAL_EXPENSE: "b69b8379-2547-4cf1-a7ad-2ab55e8a56a0",
+
+   EXPENSE_TEAM: "f8ee19c3-554c-4354-8cff-63310a1d9ae0",
+   EXPENSE_RC: "232d33bd-40e9-4ba6-8718-9718cbc95f5b",
+   EXPENSE_YEAR: "549ab4ac-f436-461d-9777-505d6dc1d4f7",
+   EXPENSE_ACCOUNT: "69133f41-7c12-44af-bd59-426a723f5e1e",
+   EXPENSE_CREDIT: "513a31b1-1f1c-487d-b65d-f87764d8aa38",
+   EXPENSE_DEBIT: "c73c6da9-fa40-40c0-98aa-a045b2d870dc",
+
+   PROJECT_NUMBER: "3bb80108-b29b-4141-a84e-646bcbab98bf",
+   PROJECT_NAME: "3adf1639-fbaf-44f9-9249-d2800506642c",
+
+   myRCsTeam: "ae4ace97-f70c-4132-8fa0-1a0b1a9c7859",
+   MCC_Name: "eb0f60c3-55cf-40b1-8408-64501f41fa71",
+};
+
+const FilterOutRC = [
+   "06 : Q100-QX MT",
+   "02 : Q5CD-South Campus MT",
+   "02 : Q5CD-North Campus MT",
+   "02 : Q3SY-XSM city cross MT",
+   "02 : Q3SY-SSN non-cross MT",
+   "02 : Q3SY-SIE non-cross MT",
+   "02 : Q3SY-SAU non-cross MT",
+   "02 : Q3SY-DDU non-cross MT",
+   "02 : Q3NM-HNM non-cross MT",
+   "02 : Q3NM-HNM cross MT",
+   "02 : Q3HB-HEB non-cross MT",
+   "02 : Q3HB-HEB cross MT",
+   "02 : Q3DL-DDL non-cross MT",
+   "02 : Q3DL-DDL cross MT",
+   "02 : Q3CC-CC non-cross MT",
+   "02 : Q3CC-CC cross MT",
+   "02 : Q1BJ-Domestic MT",
+   "02 : Q1BJ-2016CP XJ MT",
+   "02 : Q1BJ-2013SC MT-KuangDa",
+   "02 : Q1BJ-2013Bangladesh MT",
+];
+
+function sort(a, b) {
+   return (a ?? "").toLowerCase().localeCompare((b ?? "").toLowerCase());
 }
 
-function GetFYMonths(AB) {
-   const objFYMonth = AB.objectByID(OBJECT_IDS.FY_MONTH).model();
+async function getProjectBudgets(modelProjectBudget, team, rcs, year) {
+   if (!team && rcs?.length < 1) return [];
 
-   if (objFYMonth == null) {
-      console.error("null value");
-      return Promise.resolve([]);
+   const condProject = {
+      glue: "and",
+      rules: [
+         {
+            key: FIELD_IDS.BUDGET_RC,
+            rule: "not_in",
+            value: FilterOutRC,
+         },
+         {
+            key: FIELD_IDS.BUDGET_TOTAL_EXPENSE,
+            rule: "greater",
+            value: 0,
+         },
+      ],
+   };
+
+   if (team) {
+      condProject.rules.push({
+         key: FIELD_IDS.BUDGET_TEAM,
+         rule: "equals",
+         value: team,
+      });
    }
-
-   return new Promise((next, bad) => {
-      objFYMonth
-
-         .findAll({
-            where: {
-               glue: "or",
-               rules: [
-                  {
-                     key: "Status",
-                     rule: "equals",
-                     value: "1592549786113",
-                  },
-                  {
-                     key: "Status",
-                     rule: "equals",
-                     value: "1592549785939",
-                  },
-                  {
-                     key: "Status",
-                     rule: "equals",
-                     value: "1592549785894",
-                  },
-               ],
-            },
-            populate: false,
-            sort: [
-               {
-                  key: "49d6fabe-46b1-4306-be61-1b27764c3b1a",
-                  dir: "DESC",
-               },
-            ],
-            limit: 12,
-         })
-         .then((list) => {
-            next(list.map((item) => item["FY Per"]));
-         })
-         .catch(bad);
-   });
-}
-function valueFormat(number) {
-   if (number == null) return;
-
-   return number.toLocaleString("en-US", { minimumFractionDigits: 0 });
-}
-
-module.exports = {
-   prepareData: async (AB, { fyPeriod, ministryValue }) => {
-      const result = {};
-
-      const projectObj = AB.objectByID(
-         "839ac470-8f77-420c-9a30-aeaf0a9f509c"
-      ).model();
-
-      const GLTransactObj = AB.queryByID(
-         "cb59abf7-3f00-4e05-92f9-7f2db8672274"
-      ).model();
-
-      const cond = {
+   if (rcs.length) {
+      const rcCond = {
          glue: "or",
          rules: [],
       };
 
-      cond.rules.push(
-         {
-            key: "69133f41-7c12-44af-bd59-426a723f5e1e",
-            rule: "begins_with",
-            value: "7",
-         },
-         {
-            key: "69133f41-7c12-44af-bd59-426a723f5e1e",
-            rule: "begins_with",
-            value: "8",
-         }
-      );
-
-      if (fyPeriod) {
-         cond.rules.push({
-            key: "549ab4ac-f436-461d-9777-505d6dc1d4f7",
+      rcs.forEach((rc) => {
+         rcCond.rules.push({
+            key: FIELD_IDS.BUDGET_RC,
             rule: "equals",
-            value: fyPeriod,
+            value: rc,
          });
-      }
-
-      const GLTransactData = await GLTransactObj.findAll({
-         where: cond,
-         populate: true,
       });
 
-      //----------------Set Default Ministry Team ---------------//
-      const TeamsData = await projectObj.find({
-         where: {
-            glue: "and",
-            rules: [],
-         },
-         populate: false,
+      condProject.rules.push(rcCond);
+   }
+   if (year) {
+      condProject.rules.push({
+         key: FIELD_IDS.BUDGET_YEAR,
+         rule: "equals",
+         value: year,
       });
+   }
 
-      function defaultMTlist() {
-         let showTList;
-         for (i = 0; i < TeamsData.length; i++) {
-            showTList = TeamsData[i]["Ministry Team"];
-            return showTList;
-         }
-      }
+   return await modelProjectBudget.findAll({
+      where: condProject,
+      sort: [
+         { key: FIELD_IDS.BUDGET_RC, dir: "ASC" },
+         { key: FIELD_IDS.PROJECT_NUMBER, dir: "ASC" }
+      ],
+      populate: false,
+   });
+}
 
-      //------------Function Get Ministry Team Select List-------------//
-      function getMTLists() {
-         return new Promise((next, bad) => {
-            projectObj
-               .findAll({
-                  populate: true,
-               })
-               .then((list) => {
-                  const uniqList = [];
-                  (list ?? []).forEach((item) => {
-                     if (
-                        !uniqList.filter(
-                           (i) => i["Ministry Team"] == item["Ministry Team"]
-                        ).length
-                     )
-                        uniqList.push(item);
-                  });
-                  next(uniqList);
-               })
-               .catch(bad);
-         });
-      }
+async function getActualExpense(modelTeamJEArchive, team, rcs, year) {
+   if (!team && rcs?.length < 1) return [];
 
-      function getRCLists() {
-         const where = {
-            glue: "and",
-            rules: [],
-         };
-
-         if (ministryValue) {
-            where.rules.push({
-               key: "Ministry Team",
-               rule: "equals",
-               value: ministryValue,
-            });
-         }
-
-         return new Promise((next, bad) => {
-            projectObj
-               .findAll({
-                  where: where,
-                  populate: true,
-               })
-               .then((list) => {
-                  next(list);
-               })
-               .catch(bad);
-         });
-      }
-
-      const where = {
-         glue: "and",
-         rules: [],
-      };
-
-      if (
-         ministryValue == "" ||
-         ministryValue == null ||
-         ministryValue == undefined
-      ) {
-         ministryValue = defaultMTlist();
-      }
-
-      if (ministryValue) {
-         where.rules.push({
-            key: "Ministry Team",
-            rule: "equals",
-            value: ministryValue,
-         });
-      }
-
-      const filterGLTransactData = GLTransactData.filter(function (item) {
-         let keyIndex = null;
-
-         for (key in item)
-            if (key.includes("Project Number")) {
-               keyIndex = key;
-               break;
-            }
-
-         return item[keyIndex];
-      });
-
-      where.rules.push({
-         key: "3bb80108-b29b-4141-a84e-646bcbab98bf",
-         rule: "in",
-         value: GLTransactData.filter(function (item) {
-            let keyIndex = null;
-
-            for (const key in item)
-               if (key.includes("Project Number")) {
-                  keyIndex = key;
-                  break;
-               }
-
-            return item[keyIndex];
-         }).map((e) => {
-            let keyIndex = null;
-
-            for (const key in e)
-               if (key.includes("Project Number")) {
-                  keyIndex = key;
-                  break;
-               }
-
-            return e[keyIndex];
-         }),
-      });
-
-      const FilterOutRC = [
-         "06 : Q100-QX MT",
-         "02 : Q5CD-South Campus MT",
-         "02 : Q5CD-North Campus MT",
-         "02 : Q3SY-XSM city cross MT",
-         "02 : Q3SY-SSN non-cross MT",
-         "02 : Q3SY-SIE non-cross MT",
-         "02 : Q3SY-SAU non-cross MT",
-         "02 : Q3SY-DDU non-cross MT",
-         "02 : Q3NM-HNM non-cross MT",
-         "02 : Q3NM-HNM cross MT",
-         "02 : Q3HB-HEB non-cross MT",
-         "02 : Q3HB-HEB cross MT",
-         "02 : Q3DL-DDL non-cross MT",
-         "02 : Q3DL-DDL cross MT",
-         "02 : Q3CC-CC non-cross MT",
-         "02 : Q3CC-CC cross MT",
-         "02 : Q1BJ-Domestic MT",
-         "02 : Q1BJ-2016CP XJ MT",
-         "02 : Q1BJ-2013SC MT-KuangDa",
-         "02 : Q1BJ-2013Bangladesh MT",
-      ];
-
-      where.rules.push({
-         key: "RC",
-         rule: "not_in",
-         value: FilterOutRC,
-      });
-
-      const projectData = await projectObj.findAll({
-         where: where,
-         populate: true,
-      });
-
-      function objectLength(obj) {
-         var result = 0;
-         for (var prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-               result++;
-            }
-         }
-         return result;
-      }
-
-      //------------Function Sum Total Budget Amount-------------//
-      function sumTotalAmount() {
-         let sum = 0;
-
-         Object.keys(projectData).forEach((QX) => {
-            if ((projectData[QX]["RC"] = projectData[QX]["RC"] ?? [])) {
-               sum += projectData[QX]["Income Total Amount"];
-            } else {
-               projectData[QX]["Income Total Amount"];
-            }
-         });
-         return sum;
-      }
-      //------------Function Sum total Group Expense Amount------------//
-      function sumGroupTotalExpense() {
-         let sum = 0;
-         projectData.forEach((e) => {
-            const data = filterGLTransactData.filter((gt) => {
-               let keyIndex = null;
-
-               for (const key in gt)
-                  if (key.includes("Project Number")) {
-                     keyIndex = key;
-                     break;
-                  }
-
-               return gt[keyIndex] === e["Project Number"];
-            })[0];
-
-            const newData = {
-               projectBud: e,
-               gL: data,
-            };
-
-            const sumExpense =
-               newData.gL["BASE_OBJECT.Debit"] -
-               newData.gL["BASE_OBJECT.Credit"];
-            sum += sumExpense;
-         });
-         return sum;
-      }
-      //--------------Function Sum Total Group Budget Amount--------------//
-      function sumGroupTotalbudget() {
-         let sum = 0;
-         projectData.forEach((e) => {
-            const data = filterGLTransactData.filter((gt) => {
-               let keyIndex = null;
-
-               for (const key in gt)
-                  if (key.includes("Project Number")) {
-                     keyIndex = key;
-                     break;
-                  }
-
-               return gt[keyIndex] === e["Project Number"];
-            })[0];
-
-            const newData = {
-               projectBud: e,
-               gL: data,
-            };
-
-            const sumGBudget = newData.projectBud["Income Total Amount"];
-            sum += sumGBudget;
-         });
-         return sum;
-      }
-
-      //------------Function Get Team Name-------------//
-      function getTeamLists() {
-         const where = {
-            glue: "and",
-            rules: [],
-         };
-
-         if (ministryValue) {
-            where.rules.push({
-               key: "Ministry Team",
-               rule: "equals",
-               value: ministryValue,
-            });
-         }
-
-         const FilterOutRC = [
-            "06 : Q100-QX MT",
-            "02 : Q5CD-South Campus MT",
-            "02 : Q5CD-North Campus MT",
-            "02 : Q3SY-XSM city cross MT",
-            "02 : Q3SY-SSN non-cross MT",
-            "02 : Q3SY-SIE non-cross MT",
-            "02 : Q3SY-SAU non-cross MT",
-            "02 : Q3SY-DDU non-cross MT",
-            "02 : Q3NM-HNM non-cross MT",
-            "02 : Q3NM-HNM cross MT",
-            "02 : Q3HB-HEB non-cross MT",
-            "02 : Q3HB-HEB cross MT",
-            "02 : Q3DL-DDL non-cross MT",
-            "02 : Q3DL-DDL cross MT",
-            "02 : Q3CC-CC non-cross MT",
-            "02 : Q3CC-CC cross MT",
-            "02 : Q1BJ-Domestic MT",
-            "02 : Q1BJ-2016CP XJ MT",
-            "02 : Q1BJ-2013SC MT-KuangDa",
-            "02 : Q1BJ-2013Bangladesh MT",
-         ];
-
-         where.rules.push({
-            key: "RC",
+   const cond = {
+      glue: "and",
+      rules: [
+         {
+            key: FIELD_IDS.EXPENSE_RC,
             rule: "not_in",
             value: FilterOutRC,
-         });
+         },
+         {
+            key: FIELD_IDS.EXPENSE_YEAR,
+            rule: "contains",
+            value: year,
+         },
+         {
+            // Start with COA Num 7xxx,8xxx
+            glue: "or",
+            rules: [
+               {
+                  key: FIELD_IDS.EXPENSE_ACCOUNT,
+                  rule: "begins_with",
+                  value: "7",
+               },
+               {
+                  key: FIELD_IDS.EXPENSE_ACCOUNT,
+                  rule: "begins_with",
+                  value: "8",
+               },
+            ],
+         },
+         {
+            glue: "or",
+            rules: [
+               {
+                  key: FIELD_IDS.EXPENSE_CREDIT,
+                  rule: "greater",
+                  value: 0,
+               },
+               {
+                  key: FIELD_IDS.EXPENSE_DEBIT,
+                  rule: "greater",
+                  value: 0,
+               },
+            ],
+         },
+      ],
+   };
 
-         GLTransactData.filter(function (item) {
-            let keyIndex = null;
-
-            for (key in item)
-               if (key.includes("Project Number")) {
-                  keyIndex = key;
-                  break;
-               }
-
-            return item[keyIndex];
-         });
-
-         where.rules.push({
-            key: "3bb80108-b29b-4141-a84e-646bcbab98bf",
-            rule: "in",
-            value: GLTransactData.filter(function (item) {
-               let keyIndex = null;
-
-               for (const key in item)
-                  if (key.includes("Project Number")) {
-                     keyIndex = key;
-                     break;
-                  }
-
-               return item[keyIndex];
-            }).map((e) => {
-               let keyIndex = null;
-
-               for (const key in e)
-                  if (key.includes("Project Number")) {
-                     keyIndex = key;
-                     break;
-                  }
-
-               return e[keyIndex];
-            }),
-         });
-
-         return new Promise((next, bad) => {
-            projectObj
-               .findAll({
-                  where: where,
-                  populate: true,
-               })
-               .then((list) => {
-                  const uniqList = [];
-                  (list ?? []).forEach((item) => {
-                     if (!uniqList.filter((i) => i["RC"] == item["RC"]).length)
-                        uniqList.push(item);
-                  });
-                  next(uniqList);
-               })
-               .catch(bad);
-         });
-      }
-      function showTeamSumTotal() {
-         for (i = 0; i < projectData.length; i++) {
-            const showTeamList = projectData[i]["RC"];
-
-            let SumTeamTotal = 0;
-            Object.keys(projectData).forEach((QX) => {
-               var Team_lists = projectData[QX]["RC"];
-
-               if (showTeamList == Team_lists) {
-                  SumTeamTotal += projectData[QX]["Income Total Amount"];
-               } else {
-                  if (showTeamList != Team_lists) {
-                     SumTeamTotal += projectData[QX]["Income Total Amount"];
-                  }
-               }
-            });
-            return SumTeamTotal;
-         }
-      }
-
-      const data = {
-         data: result,
+   if (team) {
+      cond.rules.push({
+         key: FIELD_IDS.EXPENSE_TEAM,
+         rule: "equals",
+         value: team,
+      });
+   }
+   if (rcs.length) {
+      const rcCond = {
+         glue: "or",
+         rules: [],
       };
+      rcs.forEach((rc) => {
+         rcCond.rules.push({
+            key: FIELD_IDS.EXPENSE_RC,
+            rule: "equals",
+            value: rc,
+         });
+      });
+      cond.rules.push(rcCond);
+   }
 
-      data.projectData = projectData;
-      data.GLTransactData = GLTransactData;
-      data.filterGLTransactData = filterGLTransactData;
-      data.fnValueFormat = valueFormat;
-      data.showTeamSumTotal = showTeamSumTotal();
-      data.objectLength = objectLength(projectData);
-      data.fyPeriod = fyPeriod;
-      if (
-         ministryValue == "" ||
-         ministryValue == null ||
-         ministryValue == undefined
-      ) {
-         data.showMTHead = defaultMTlist();
-      } else {
-         data.showMTHead = ministryValue;
-      }
-      data.getRCLists = await getRCLists();
-      data.sumTotalAmount = sumTotalAmount();
-      data.sumGroupTotalExpense = sumGroupTotalExpense();
-      data.sumGroupTotalbudget = sumGroupTotalbudget();
-      data.getTeamLists = await getTeamLists();
-      data.getMTLists = await getMTLists();
-      data.fyOptions = await GetFYMonths(AB);
+   return await modelTeamJEArchive.findAll({
+      where: cond,
+      sort: [
+         { key: FIELD_IDS.EXPENSE_RC, dir: "ASC" },
+         { key: FIELD_IDS.PROJECT_NUMBER, dir: "ASC" },
+      ],
+      populate: false,
+   });
+}
+
+module.exports = {
+   prepareData: async (AB, { team, mcc, rc, fyYear }, req) => {
+      const data = {
+         current_path: __dirname,
+         title: {
+            en: "Budget vs. Actual",
+            zh: "实际的 to 实际花费",
+         },
+         fnValueFormat: utils.valueFormat,
+      };
+      // get our passed params
+      data.team = team ? team : undefined;
+      data.mcc = mcc ? mcc: undefined;
+      data.rc = rc ? rc : undefined;
+      data.fyYear = fyYear;
+      fyYear = (fyYear || `FY${new Date().getFullYear()}`).toString();
+      // NOTE: Convert "FY2023" to "FY23" format
+      fyYear = fyYear.length == 6 ? `FY${fyYear.slice(-2)}` : fyYear;
+
+      const myTeams = AB.queryByID(QUERY_IDS.myTeams).model();
+      const myRCs = AB.queryByID(QUERY_IDS.myRCs).model();
+      const queryTeamJEArchive = AB.queryByID(QUERY_IDS.teamJEArchive);
+      const modelTeamJEArchive = queryTeamJEArchive.model();
+      const yearObj = AB.objectByID(OBJECT_IDS.FiscalYear).model();
+      const projectBudgetObj = AB.objectByID(OBJECT_IDS.ProjectBudget).model();
+      const teamField = AB.queryByID(QUERY_IDS.myRCs).fieldByID(FIELD_IDS.myRCsTeam);
+      const mccField = AB.queryByID(QUERY_IDS.myRCs).fieldByID(FIELD_IDS.MCC_Name);
+
+      // Load Data
+      const [teamsArray, rcs, yearArray] = await Promise.all([
+         // Return teams
+         myTeams.findAll(
+            {
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         ),
+         // Return myRCs
+         myRCs.findAll(
+            {
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         ),
+         //Return year
+         yearObj.findAll(
+            {
+               populate: false,
+            },
+            { username: req._user.username },
+            AB.req
+         ),
+      ]);
+
+      const selectedRcs = [rc]
+         .concat(
+            rcs
+               .filter((r) => mcc && r[`${mccField.alias}.${mccField.columnName}`] == mcc)
+               .map((r) => r["BASE_OBJECT.RC Name"])
+         )
+         .filter((r) => r);
+
+      const [budgets, expenses] = await Promise.all([
+         getProjectBudgets(projectBudgetObj, team, selectedRcs, fyYear),
+         getActualExpense(modelTeamJEArchive, team, selectedRcs, fyYear),
+      ]);
+
+      data.teamOptions = (teamsArray ?? [])
+         .map((t) => t["BASE_OBJECT.Name"])
+         // Remove duplicated Team
+         .filter(function (team, ft, tl) {
+            return tl.indexOf(team) == ft;
+         })
+         .sort(sort);
+
+      data.mccOptions = (rcs ?? [])
+         .map((t) => t[`${mccField.alias}.${mccField.columnName}`])
+         // Remove duplicated RC
+         .filter(function (rc, pos, self) {
+            return self.indexOf(rc) == pos;
+         })
+         .sort(sort);
+
+      data.rcOptions = (rcs ?? [])
+         .filter(((t) => !team || t[`${teamField.alias}.${teamField.columnName}`] == team))
+         .map((t) => t["BASE_OBJECT.RC Name"])
+         // Remove duplicated RC
+         .filter(function (rc, pos, self) {
+            return self.indexOf(rc) == pos;
+         })
+         .sort(sort);
+
+      data.yearOptions = (yearArray ?? []).map((t) => t["FYear"]).sort(sort);
+
+      data.totalBudgetAmount = 0;
+      data.totalActualExpense = 0;
+
+      // [Format]
+      // {
+      //    RC_Name: {
+      //       project_number: {
+      //          project_name: "",
+      //          budget_amount: 0,
+      //          actual_expense: 0,
+      //       },
+      //       total_budget_amount: 0,
+      //       total_actual_expense: 0,
+      //    },
+      //    ...
+      //    RC_Name_n: {}
+      // }
+      data.rc_infos = {};
+
+      // Pull BUDGET of each Project
+      budgets.forEach((b) => {
+         const RC = b["RC"];
+         const Project_Number = b["Project Number"];
+         const Project_Name = b["Project Name"];
+         const Expense_Amount = b["Expense Total Amount"];
+
+         data.rc_infos[RC] = data.rc_infos[RC] ?? {
+            total_budget_amount: 0,
+            total_actual_expense: 0,
+         };
+
+         data.rc_infos[RC][Project_Number] = data.rc_infos[RC][Project_Number] ?? {
+            project_name: Project_Name,
+            budget_amount: 0,
+            actual_expense: 0,
+         };
+
+         data.rc_infos[RC][Project_Number].budget_amount += Expense_Amount;
+         data.rc_infos[RC].total_budget_amount += Expense_Amount;
+         data.totalBudgetAmount += Expense_Amount;
+      });
+
+      // Pull EXPENSE of each Project
+      const fieldRC = queryTeamJEArchive.fieldByID(FIELD_IDS.EXPENSE_RC);
+      const fieldProjectNumber = queryTeamJEArchive.fieldByID(FIELD_IDS.PROJECT_NUMBER);
+      const fieldProjectName = queryTeamJEArchive.fieldByID(FIELD_IDS.PROJECT_NAME);
+      expenses.forEach((e) => {
+         const RC = e[`${fieldRC.alias}.${fieldRC.columnName}`];
+         const Project_Number = e[`${fieldProjectNumber.alias}.${fieldProjectNumber.columnName}`];
+         const Project_Name = e[`${fieldProjectName.alias}.${fieldProjectName.columnName}`];
+         const ACTUAL_EXPENSE = (e["BASE_OBJECT.Debit"] ?? 0) - (e["BASE_OBJECT.Credit"] ?? 0);
+
+         data.rc_infos[RC] = data.rc_infos[RC] ?? {
+            total_budget_amount: 0,
+            total_actual_expense: 0,
+         };
+
+         data.rc_infos[RC][Project_Number] = data.rc_infos[RC][Project_Number] ?? {
+            project_name: Project_Name,
+            budget_amount: 0,
+            actual_expense: 0,
+         };
+
+         data.rc_infos[RC][Project_Number].actual_expense += ACTUAL_EXPENSE;
+         data.rc_infos[RC].total_actual_expense += ACTUAL_EXPENSE;
+         data.totalActualExpense += ACTUAL_EXPENSE;
+      });
+
+      data.percentExpenseBudget = data.totalBudgetAmount && data.totalActualExpense ? (data.totalActualExpense / data.totalBudgetAmount) * 100 : 0;
 
       return data;
    },
