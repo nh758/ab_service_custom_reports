@@ -7,6 +7,8 @@ jobs:
   call-update-sub:
     name: Update
     uses: digi-serve/.github/.github/workflows/update-sub-repo.yml@nh/platform-workflows
+    secrets: 
+      TOKEN:  ${{ secrets.PAT }}
     with:
       repository: nh758/appbuilder_platform_service
       short_name: platform
