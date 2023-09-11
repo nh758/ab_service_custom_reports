@@ -8,7 +8,7 @@ jobs:
     name: Update
     uses: digi-serve/.github/.github/workflows/update-sub-repo.yml@nh/platform-workflows
     with:
-      repository: digi-serve/appbuilder_platform_service
+      repository: nh758/appbuilder_platform_service
       short_name: platform
       folder: AppBuilder
       version: ${{ github.event.client_payload.version }}
