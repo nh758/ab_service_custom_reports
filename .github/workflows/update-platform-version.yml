@@ -53,7 +53,7 @@ jobs:
       body: Automatic updated failed. Check the [E2E tests](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
       release_notes: "- platform updated to ${{ env.VERSION }}"
   
-  call-open-pr-fail:
+  call-open-pr-major:
     name: Create a PR
     needs: [ call-update-sub, call-run-cy-test ]
     if: ${{ github.event.client_payload.type == 'major' }}
