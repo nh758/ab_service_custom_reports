@@ -12,13 +12,18 @@ const QUERY_IDS = {
    MyQXRC: "2e3e423b-fcec-4221-9a9c-7a670fbba65e",
 };
 
-function GetViewDataBalanceReport(rc, fyMonth) {
+const FIELDS_IDS = {
+   mccFieldId: "eb0f60c3-55cf-40b1-8408-64501f41fa71",
+};
+
+function GetViewDataBalanceReport(mcc, rc, fyMonth) {
    return {
       title: {
          en: "RC Balances",
          zh: "",
       },
       fnValueFormat: utils.valueFormat,
+      mcc: mcc,
       rcType: rc,
       fyPeriod: fyMonth,
       fyOptions: [],
@@ -29,17 +34,7 @@ function GetViewDataBalanceReport(rc, fyMonth) {
 async function GetRC(AB, req, queryId) {
    const queryRC = AB.queryByID(queryId).model();
 
-   const list = await queryRC.findAll(
-      {},
-      { username: req._user.username },
-      req
-   );
-
-   const rcNames = (list || [])
-      .map((rc) => rc["BASE_OBJECT.RC Name"])
-      .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-
-   return rcNames;
+   return list || [];
 }
 
 async function GetFYMonths(AB, req) {
@@ -115,8 +110,8 @@ async function GetBalances(AB, req, rc, fyPeriod, extraRules = []) {
 module.exports = {
    // GET: /template/balanceReport
    // balanceReport: (req, res) => {
-   prepareData: async (AB, { rc, fyper }, req) => {
-      let viewData = GetViewDataBalanceReport(rc, fyper);
+   prepareData: async (AB, { mcc, rc, fyper }, req) => {
+      let viewData = GetViewDataBalanceReport(mcc, rc, fyper);
 
       /**
        * {
@@ -131,12 +126,31 @@ module.exports = {
       viewData.fyOptions = await GetFYMonths(AB, req);
 
       // Check QX Role of the user
-      const RCs = await GetRC(
-         AB,
+      let RCs = await GetRC(
          req,
          viewData.rcType == "qx" // this is the rc from GET
             ? QUERY_IDS.MyQXRC
             : QUERY_IDS.MyTeamRC
+      );
+
+      const query = AB.queryByID(
+         viewData.rcType == "qx" ? QUERY_IDS.MyQXRC : QUERY_IDS.MyTeamRC
+      );
+      const mccField = query.fieldByID(FIELDS_IDS.mccFieldId);
+
+      // MCC option list
+      viewData.mccOptions = RCs.map(
+         (rc) => rc[`${mccField.alias}.${mccField.columnName}`]
+      ).filter((mcc, ft, tl) => mcc && tl.indexOf(mcc) == ft);
+
+      if (mcc) {
+         RCs = RCs.filter(
+            (rc) => rc[`${mccField.alias}.${mccField.columnName}`] == mcc
+         );
+      }
+
+      const rcNames = RCs.map((rc) => rc["BASE_OBJECT.RC Name"]).sort((a, b) =>
+         a.toLowerCase().localeCompare(b.toLowerCase())
       );
 
       // Pull Balance
@@ -144,7 +158,7 @@ module.exports = {
          {
             key: "RC Code",
             rule: "in",
-            value: RCs,
+            value: rcNames,
          },
          {
             key: "COA Num",

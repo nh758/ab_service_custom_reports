@@ -16,6 +16,7 @@ const reports = {
    "hello-world": require("../reports/hello-world.js"),
    "well-invoice": require("../reports/well-invoice.js"),
    "well-receipt": require("../reports/well-receipt.js"),
+   "well-session": require("../reports/well-session.js"),
    "local-income-expense": require("../reports/local-income-expense.js"),
    "income-vs-expense": require("../reports/income-vs-expense.js"),
    "balance-sheet": require("../reports/balance-sheet.js"),

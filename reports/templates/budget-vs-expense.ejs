@@ -1,323 +1,150 @@
-<style>
-   .table-align {
-      color: black;
-      font-family: verdana, Verdana, Geneva, Tahoma, sans-serif;
-      font-weight: bold;
-      font-size: 18px;
-      text-align: center;
-      width: 50%;
-   }
-   .wrapper {
-      display: flex;
-      height: 205mm;
-      width: 297mm;
-      justify-content: space-between;
-   }
-   .wrapper > div {
-      white-space: nowrap;
-      height: 205mm;
-      width: 138mm;
-      position: relative;
-   }
-   .logo {
-      width: 50%;
-   }
-   @media screen {
-      div.wrapper {
-         margin: 5mm 5mm 5mm 10mm;
+<%- include(current_path + '/templates/_stylesheets' ) %>
+   <style>
+      body {
+         overflow: visible;
       }
-   }
 
-   @media print {
-      div.wrapper {
-         margin: 0mm;
+      select.option {
+         font-size: 24px;
+         color: gray;
+         border: 1px solid #CCC;
       }
-   }
-   select.selector {
-      font-size: 24px;
-      color: gray;
-      border: 1px solid #ccc;
-   }
+   </style>
 
-   tr {
-      align-items: center;
-   }
-   tbody {
-      text-align: center;
-   }
-   select {
-  text-align: center;
-  text-align-last: center;
-}
-option {
-  text-align: left;
-}
-</style>
-<link
-   href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
-   rel="stylesheet"
-   integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi"
-   crossorigin="anonymous"
-/>
-<script
-   src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
-   integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
-   crossorigin="anonymous"
-></script>
-<script type="text/javascript">
-   function sendDataMTVal(form) {
-         
-      let mtVal = document.getElementById("mtType").value;
-      let gtPeriod = document.getElementById("getPR").value;
-    
-      window.location.href = `/report/budget-vs-expense?ministryValue=${mtVal}&fyPeriod=${gtPeriod}`;
+   <script type="text/javascript">
+      function refresh() {
+         const teamVal = document.getElementById("teamSelect").value,
+            mccVal = document.getElementById("mccSelect").value,
+            rcVal = document.getElementById("rcSelect").value,
+            yearVal = document.getElementById("yearSelect").value;
 
-   }
-
-</script>
-<%     function addCommas(nStr) {
-   nStr += "";
-   x = nStr.split(".");
-   x1 = x[0];
-   x2 = x.length > 1 ? "." + x[1] : "";
-   var rgx = /(\d+)(\d{3})/;
-   while (rgx.test(x1)) {
-      x1 = x1.replace(rgx, "$1" + "," + "$2");
-   }
-   return x1 + x2;
-}
- %>
-<div class="container">
+         location.href = `/report/budget-vs-expense?team=${teamVal}&mcc=${mccVal}&rc=${rcVal}&fyYear=${yearVal}`;
+      }
+   </script>
    <center>
-      <h2>Budget vs. Actual</h2>
-   
-    <br><br>
-         <form>
-            <table class="table-responsive-md">
-               <thead class="table-light table-align">
-                  <tr>
-                  
-                        <td>
-                           <span style="color: gray; font-weight: normal">
-                             Ministry Team :
-                           </span>
-                        </td>
-                        <td>
-                           <select
-                           id="mtType"  onchange="return sendDataMTVal(this)"
-                           style="
-                              font-size: 20px;
-                              color: gray;
-                              border: 1px solid #ccc;
-                           "
-                        > <option><%= getMTLists[0]["Ministry Team"] %></option>
-                           <% for(i=0; i < getMTLists.length; i++) { %>
-                              
-                              <option <% if (getMTLists[i].selected) { %> 
-                                 selected <% } %> value="<%= getMTLists[i]["Ministry Team"]
-                                 %>"> <%= getMTLists[i]["Ministry Team"] %>
-                              </option>
-                              <% } %>
-                           </select>
-                        </td>
-                        <td> <span style="color: gray; font-weight: normal">&nbsp;FY Period :     </span>                      
-                           <select
-                           id="getPR" onchange="return sendDataMTVal(this)"
-                           style="
-                              font-size: 20px;
-                              color: gray;
-                              border: 1px solid #ccc;
-                           "
-                        >
-                        <% for(var i=0; i < fyOptions.length; i++) { %>
-                           <option <% if (fyPeriod==fyOptions[i]) { %> selected <% } %> value="<%= fyOptions[i] %>"><%=
-                                           fyOptions[i] %>
-                           </option>
-                           <% } %>
-                           </select>
-                        </td>                   
-                     </td>                  
-                   
+      <h1>
+         <%= title[languageCode] %>
+      </h1>
+      <h2>
+         Ministry Team :
+         <select id="teamSelect" onchange="refresh()" class="option">
+            <option value="">[All]</option>
+            <% for(i=0; i < teamOptions.length; i++) { %>
+               <option <% if (team==teamOptions[i]) { %> selected <% } %> value="<%= teamOptions[i] %>"><%=
+                           teamOptions[i] %>
+               </option>
+               <% } %>
+         </select>
+         MCC :
+         <select id="mccSelect" onchange="refresh()" class="option">
+            <option value="">[All]</option>
+            <% for(i=0; i < mccOptions.length; i++) { %>
+               <option <% if (mcc==mccOptions[i]) { %> selected <% } %> value="<%= mccOptions[i] %>"><%= mccOptions[i] %>
+               </option>
+               <% } %>
+         </select>
+         RC :
+         <select id="rcSelect" onchange="refresh()" class="option">
+            <option value="">[All]</option>
+            <% for(i=0; i < rcOptions.length; i++) { %>
+               <option <% if (rc==rcOptions[i]) { %> selected <% } %> value="<%= rcOptions[i] %>"><%= rcOptions[i] %>
+               </option>
+               <% } %>
+         </select>
+         Year :
+         <select id="yearSelect" onchange="refresh()" class="option">
+            <option value="">[Current]</option>
+            <% for(i=0; i < yearOptions.length; i++) { %>
+               <option <% if (fyYear==yearOptions[i]) { %> selected <% } %> value="<%= yearOptions[i] %>"><%=
+                           yearOptions[i] %>
+               </option>
+               <% } %>
+         </select>
+      </h2>
+      <div>
+         <table width="100%">
+            <thead class="table-light table-align">
+               <tr>
+                  <td colspan="3" style="color: gray; font-weight: normal;text-align: left;font-size: 24px;">Team: <%=
+                        team ? team : "[None]" %>
+                  </td>
+               </tr>
+
+               <tr class="sub header">
+                  <td align="right">Total Budget Amount</td>
+                  <td align="right">Total Actual Expense</td>
+                  <td align="right">Expense/Budget %</td>
+               </tr>
+            </thead>
+            <tbody>
+               <tr style="color: gray; font-weight: normal;text-align: left;font-size: 18px;">
+                  <td align="right">
+                     <%= fnValueFormat(totalBudgetAmount) %>
+                  </td>
+                  <td align="right">
+                     <%= fnValueFormat(totalActualExpense)%>
+                  </td>
+                  <td align="right">
+                     <%= fnValueFormat(percentExpenseBudget) %> %
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <div>
+         <table width="100%">
+            <% for(const rc_name in rc_infos) { %>
+               <% const rc=rc_infos[rc_name]; %>
+                  <tr class="header">
+                     <th colspan="5">
+                        <%= rc_name %>
+                     </th>
                   </tr>
-               </thead>
-            </table>
-            <br>
-   <table border="2"  class="table table-responsive-md">
-      <thead class="table-light table-align">
-      <tr>
-         <td colspan="3" style="color: gray; font-weight: normal;text-align: left;">Team: <%= showMTHead %></td>
-      </tr>
-      <tr class="table-active" style="color: gray; font-weight: normal;text-align: left;font-size: 18px;">
-         <td>Total Budget Amount</td>
-         <td>Total Actual Expense</td>
-         <td>Expense/Budget%</td>
-      </tr>
-   </thead>   
-   <tbody>
-      <tr style="color: gray; font-weight: normal;text-align: left;font-size: 18px;">
-         <td><% let sumTotalBgAmount = sumTotalAmount
-                 if(isNaN(sumTotalBgAmount)){
-                    sumTotalBgAmount = 0
-                 }else{
-                    sumTotalBgAmount
-                 }
-              %>
-           <%= addCommas(sumTotalBgAmount) %></td>
-           <td><% let sumTotalActEx = sumGroupTotalExpense
-                    if(isNaN(sumTotalActEx)){
-                       sumTotalActEx = 0
-                    }else{
-                       sumTotalActEx
-                    }
-              %>
-              <%= addCommas(sumTotalActEx) %> </td>
-           <td><% let sumPercent = (sumGroupTotalExpense / sumTotalAmount *100).toFixed(2) 
-                  let checkFinite = isFinite(sumPercent);
-                    if(isNaN(sumPercent)){
-                       sumPercent = 0
-                    }else if(checkFinite === false){
-                       sumPercent = 0
-                    }else{
-                       sumPercent
-                    }               
-                    
-               %>
-               <%= addCommas(sumPercent)  %> %
-          </td>
-      </tr>
-   </tbody>
-   </table>
-   <br>
-   <% if(objectLength==0) { %>
-
-   <%  }else{ %>
-   <% for(i=0; i < getTeamLists.length; i++) { %>
-
-   <table border="2" class="table table-responsive-md">
-    
-      <thead class="table-light table-align">
-          
-      <tr>
-          <td colspan="5" style="color: gray; font-weight: normal;text-align: left;">
-         <%= getTeamLists[i]["RC"] %>
-         </td>
-      </tr>
-
-      <tr class="table-active" style="color: gray; font-weight: normal;text-align: left;">
-         <td>Project Number</td>
-         <td>Project Name</td>
-         <td>Total Budget Amount</td>
-         <td>Total Actual Expense</td>
-         <td>Expense/Budget%</td>
-      </tr>
-   </thead>   
-   <tbody>
-     
-      <% projectData.forEach((e) => {  %>
-         <% 
-      
-         const data = filterGLTransactData.filter((gt) => {
-                      let keyIndex = null;
-      
-                      for (const key in gt)
-                         if (key.includes("Project Number")) {
-                            keyIndex = key;
-                            break;
-                         }
-      
-                      return gt[keyIndex] === e["Project Number"];
-                   })[0];
-      
-                   const newData = {
-                      projectBud: e,
-                      gL: data,
-                   };
-
-                                          
-                  
-            %><% let sumTotalExpense = 0 %>
-            <% if(getTeamLists[i]["RC"]===newData.projectBud["RC"]) { %>
-    
-                          
-            <tr style="color: gray; font-weight: normal;text-align: left;font-size: 18px;">
-                 
-                  <td>&nbsp;&nbsp;<%= newData.projectBud["Project Number"] %></td>
-                  <td><%= newData.projectBud["Project Name"] %></td>
-                  <td><% let ttbudgetAmount = newData.projectBud["Income Total Amount"]
-                          if(isNaN(ttbudgetAmount)){
-                             ttbudgetAmount = 0
-                          }else{
-                             ttbudgetAmount
-                          }
-                    %>
-                    <%= addCommas(ttbudgetAmount) %></td>
-                  <td>
-                     <% let sumExpense = (newData.gL["BASE_OBJECT.Debit"] - newData.gL["BASE_OBJECT.Credit"]) 
-                          if(isNaN(sumExpense)){
-                             sumExpense = 0
-                          }else{
-                             sumExpense
-                          }
-                     
-                     %>            
-                     <%= addCommas(sumExpense) %>
-                  </td>
-                  <td>
-                     <% let BudgetExpense = (sumExpense / newData.projectBud["Income Total Amount"] * 100).toFixed(2)
-                        let checkFinite2 = isFinite(BudgetExpense);
-                          if(isNaN(BudgetExpense)){
-                             BudgetExpense = 0
-                          }else if(checkFinite2 === false){
-                             BudgetExpense = 0
-                          }else{
-                             BudgetExpense
-                          }
-                       
-                     %>
-                     <%= addCommas(BudgetExpense)  %>%   
-              
-                  </td>
-            </tr>
-
-            
-      <% } %>
-
-    <% }) %>
-
-    <tr class="table-active" style="color: gray; font-weight: bold;font-size: 20px;">
-      <td colspan="2" style="color: gray; font-weight: normal;text-align: left;">Total</td>
-      <td style="color: gray; font-weight: normal;text-align: left;">
-        <%  
-              if(isNaN(sumGroupTotalbudget)){
-                 sumGroupTotalbudget = 0
-              }else{
-                 sumGroupTotalbudget
-              }
-        %>
-        <%= addCommas(sumGroupTotalbudget) %>
-     </td>
-      <td style="color: gray; font-weight: normal;text-align: left;">
-        <%   
-           if(isNaN(sumGroupTotalExpense)){
-              sumGroupTotalExpense = 0
-           }else{
-              sumGroupTotalExpense
-           }
-        %>
-        <%= addCommas(sumGroupTotalExpense) %>
-     </td>
-      <td></td>
-   </tr>
-
-<% } %>
-
-</tbody>
- 
-</table>
-
-<%  } %>  
+                  <!-- Header -->
+                  <tr class="sub header">
+                     <td>Project Number</td>
+                     <td>Project Name</td>
+                     <td align="right">Total Budget Amount</td>
+                     <td align="right">Total Actual Expense</td>
+                     <td align="right">Expense/Budget %</td>
+                  </tr>
+                  <% for(const project_number in rc) { %>
+                     <% if (project_number == "total_budget_amount" || project_number == "total_actual_expense") continue; %>
+                     <% const project_info=rc[project_number]; %>
+                        <tr>
+                           <td>
+                              <%= project_number %>
+                           </td>
+                           <td>
+                              <%= project_info.project_name %>
+                           </td>
+                           <td align="right">
+                              <%= fnValueFormat(project_info.budget_amount) %>
+                           </td>
+                           <td align="right">
+                              <%= fnValueFormat(project_info.actual_expense) %>
+                           </td>
+                           <td align="right">
+                              <%= fnValueFormat(project_info.actual_expense && project_info.budget_amount ?
+                                 (project_info.actual_expense/project_info.budget_amount) * 100 : 0) %> %
+                           </td>
+                        </tr>
+                        <% } %>
+                           <!-- Footer -->
+                           <tr class="sub header">
+                              <td colspan="2">Total</td>
+                              <td align="right">
+                                 <%= fnValueFormat(rc.total_budget_amount) %>
+                              </td>
+                              <td align="right">
+                                 <%= fnValueFormat(rc.total_actual_expense) %>
+                              </td>
+                              <td align="right">
+                                 <%= fnValueFormat(rc.total_budget_amount && rc.total_actual_expense ?
+                                    (rc.total_actual_expense/rc.total_budget_amount) * 100 : 0) %> %
+                              </td>
+                           </tr>
+                           <% } %>
+         </table>
+      </div>
    </center>
-   <br /><br />       
-
-</form>
-</div>
